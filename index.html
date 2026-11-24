@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KIRARA: LAB</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Serif:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* VOICE: clinical lab archive, terminal-like, glitchy accents
+   IDEA: a research institute's index of invisible emotional structures
+   PICTURE: fisheye-lens carousel of asterisk logos that reacts to the playing track
+   COLOUR/TYPE: white ground, black ink, indigo #2a12c8, cyan / magenta / lime accents; IBM Plex Mono + Serif, OCR A digits
+   LAYOUT: Figma frame 1422px reproduced 1:1 with --u scaling; stacks under 900px */
+@font-face{font-family:"Num";src:local("OCR A Extended"),local("OCRAExtended"),local("OCR A Std"),local("OCRAStd"),local("OCR-A"),local("OCR A");unicode-range:U+0030-0039}
+:root{color-scheme:light;--u:calc(100vw/1422);--ink:#000;--blue:#2a12c8;--cyan:#00e5e0;--mag:#ff2fd0;--lime:#d6ff00;--red:#ff2b55;--green:#66ff00;--gray:#e6e6e6;--lav:#b9b0ef;--paleY:#f2f7b8;--paleB:#e3ecff;--mono:"Num","IBM Plex Mono",ui-monospace,monospace;--serif:"IBM Plex Serif",Georgia,serif}
+*{box-sizing:border-box;min-width:0}
+html{scroll-behavior:smooth}
+body{margin:0;background:#fff;color:var(--ink);font-family:var(--mono);font-size:calc(14*var(--u));line-height:1.36;overflow-x:clip;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.u{text-decoration:underline;text-underline-offset:.18em;text-decoration-thickness:1px}
+.lbl{background:var(--blue);color:#fff;padding:0 .2em;display:inline-block}
+.blue{color:var(--blue)}
+.sec{position:relative}
+.abs{position:absolute;left:calc(var(--x)*var(--u));top:calc(var(--y)*var(--u))}
+.box{width:calc(var(--w)*var(--u));height:calc(var(--h)*var(--u))}
+
+/* ticker */
+.tick{overflow:hidden;white-space:nowrap;height:calc(65*var(--u));border-bottom:1px solid #9a9a9a;margin:0 calc(10*var(--u))}
+.tick.band{background:var(--blue);color:#fff;margin:0;border:0}
+.track{display:flex;width:max-content;animation:mq 40s linear infinite}
+.band .track{animation-direction:reverse}
+.tk{width:calc(1500*var(--u));flex:none;position:relative;height:calc(65*var(--u))}
+.tk span{position:absolute;white-space:pre}
+.tick:hover .track{animation-play-state:paused}
+@keyframes mq{to{transform:translateX(-50%)}}
+
+/* hero */
+#hero{height:calc(735*var(--u))}
+#lens{position:absolute;inset:0;width:100%;height:100%;cursor:grab;touch-action:pan-y;outline:none}#lens.drag{cursor:grabbing}#lens:focus-visible{outline:2px solid var(--blue);outline-offset:-4px}
+.brand{font-weight:600;font-size:calc(18*var(--u))}
+.emo{list-style:none;margin:0;padding:0}
+.emo li{height:calc(26*var(--u));display:flex;align-items:center}
+.emo button{display:flex;align-items:center;gap:0;font-size:calc(13.5*var(--u))}
+.emo .ic{width:calc(22*var(--u));height:calc(22*var(--u));transition:transform .5s}
+.emo .t{background:#000;color:#fff;padding:0 .15em}
+.emo .tr{display:flex;opacity:0;transition:opacity .3s}
+.emo .tr svg{width:calc(20*var(--u));height:calc(20*var(--u));color:var(--cyan)}
+.emo .tr svg:last-child{width:calc(12*var(--u))}
+.emo button[aria-pressed=true] .t{background:var(--cyan);color:#000}
+.emo button[aria-pressed=true] .ic{color:var(--cyan);transform:rotate(90deg)}
+.emo button[aria-pressed=true] .tr{opacity:1}
+.emo button[aria-pressed=true] .tr svg{animation:spin 3s linear infinite}
+.emo button:hover .ic{transform:rotate(60deg)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.tree{border-left:1px solid #000}
+.tree a{position:absolute;left:calc(58*var(--u));white-space:nowrap;text-decoration:none}
+.tree a::before{content:"";position:absolute;right:100%;top:50%;width:calc(47*var(--u));border-top:1px solid #000;margin-right:calc(11*var(--u))}
+.tree a:hover{background:var(--blue);color:#fff}
+.tree a span{text-decoration:underline;text-underline-offset:.18em}
+.welcome b{font-weight:600}
+.scroll-btn{border:1px solid #000;padding:0 .4em;background:#fff;white-space:nowrap}
+.scroll-btn:hover{background:#000;color:#fff}
+.scroll-btn i{display:inline-block;font-style:normal;animation:bob 1.4s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(.25em)}}
+#mode{font-size:calc(12*var(--u));color:var(--blue)}.lctl{text-align:right;pointer-events:none}.lbtn{display:flex;justify-content:flex-end;align-items:center;gap:calc(8*var(--u));margin-top:calc(6*var(--u));pointer-events:auto}.lbtn button{border:1px solid #000;background:#fff;width:calc(28*var(--u));height:calc(22*var(--u));min-width:26px;min-height:22px}.lbtn button:hover{background:#000;color:#fff}.lbtn span{font-size:calc(11*var(--u));letter-spacing:.1em}.np{display:flex;justify-content:flex-end;align-items:center;gap:calc(8*var(--u));pointer-events:auto;font-size:calc(12*var(--u))}.np[hidden],.npbar[hidden]{display:none}.np button{background:#000;color:var(--cyan);width:calc(26*var(--u));height:calc(22*var(--u));min-width:26px;min-height:22px;font-size:10px}.np button:hover{background:var(--cyan);color:#000}.np span{background:var(--cyan);padding:0 .3em;white-space:nowrap}.npbar{height:2px;background:#ddd;margin:calc(6*var(--u)) 0 calc(8*var(--u)) auto;width:100%}.npbar b{display:block;height:100%;width:0;background:#000}
+
+/* vision */
+#vision{height:calc(800*var(--u))}
+.r{background:var(--gray);outline:1px solid #8a8a8a;outline-offset:-1px;will-change:transform}
+.c{will-change:transform}
+.idx a{display:block;text-decoration:none;margin-top:.35em}
+.idx a span{color:var(--blue);text-decoration:underline;text-underline-offset:.18em}
+.idx a:hover span{background:var(--blue);color:#fff}
+h2.vh{font-family:var(--serif);font-weight:400;font-size:calc(29*var(--u));line-height:1.08;margin:0;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:.12em}
+.astb{border:1px solid #000;display:grid;place-items:center}
+.astb svg{width:80%;height:80%}
+.paras p{margin:0 0 calc(7*var(--u))}
+.hl{color:#000;background:linear-gradient(#000,#000) no-repeat 0 0/0% 100%;box-decoration-break:clone;-webkit-box-decoration-break:clone;transition:background-size 1.1s cubic-bezier(.7,0,.2,1),color .5s .5s;text-decoration:underline;text-underline-offset:.2em;padding:0 .1em}
+.in .hl{background-size:100% 100%;color:#fff}
+.gl{position:absolute;z-index:-1;transition:transform .2s}
+.paras:hover .gl{animation:glitch .35s steps(2) infinite}
+@keyframes glitch{0%{transform:translate(0)}50%{transform:translate(calc(6*var(--u)),calc(-2*var(--u)))}100%{transform:translate(calc(-4*var(--u)),0)}}
+.focus a{display:block;color:var(--blue);margin-top:calc(4*var(--u));text-underline-offset:.18em;transition:letter-spacing .3s}
+.focus a:hover{letter-spacing:.06em}
+
+/* philosophy */
+#philosophy{height:calc(830*var(--u))}
+h2.ph{font-family:var(--serif);font-weight:500;font-size:calc(46*var(--u));letter-spacing:.09em;line-height:calc(56*var(--u));margin:0}
+h2.ph span{display:block;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:.08em}
+h2.ph span:nth-child(2){padding-left:calc(54*var(--u))}
+.tag{color:var(--blue);line-height:1.6;transition:opacity .3s,transform .3s,filter .3s;cursor:default;white-space:nowrap}
+.tag b{font-weight:400;display:block;width:max-content;text-decoration:underline;text-underline-offset:.15em}
+.tag em{font-style:normal;text-decoration:underline;text-underline-offset:.15em;padding:0 .1em}
+.tag.n{animation:drift 7s ease-in-out infinite alternate}
+.tag.n:nth-child(odd){animation-duration:9s}
+@keyframes drift{to{transform:translate(calc(6*var(--u)),calc(-4*var(--u)))}}
+.dim .tag:not(.on){opacity:.15;filter:blur(1px)}
+.tag.on{transform:scale(1.08);z-index:5}
+.tag:hover{z-index:5}
+.tag:hover em{background:var(--blue)!important;color:#fff}
+.stmt div{display:flex;justify-content:space-between;width:calc(161*var(--u));margin-top:calc(5*var(--u));cursor:pointer}
+.stmt div span{text-decoration:underline;text-underline-offset:.18em}
+.stmt div:hover span{background:var(--blue);color:#fff}
+.purpose{background:#dff6f6;padding:calc(10*var(--u)) calc(15*var(--u))}
+.purpose p{color:var(--mag);margin:calc(14*var(--u)) 0 0}
+.body p{margin:0 0 calc(14*var(--u))}
+.phil h4,.h4{font-weight:600;margin:0 0 calc(12*var(--u));font-size:inherit}
+.phil dt{text-decoration:underline;text-underline-offset:.2em;width:max-content;cursor:pointer}
+.phil dd{margin:calc(6*var(--u)) 0 calc(14*var(--u)) calc(32*var(--u));overflow:hidden;transition:max-height .5s,opacity .5s;max-height:8em}
+.phil dt:hover{background:#000;color:#fff}
+
+/* archive */
+#archive{height:calc(770*var(--u))}
+.params a{display:block;text-decoration:underline;text-underline-offset:.2em;margin-bottom:calc(7*var(--u));width:max-content;transition:transform .25s}
+.params a:hover{transform:translateX(calc(8*var(--u)));color:var(--blue)}
+#graph{touch-action:none}
+#graph svg.lines{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.node{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:calc(6*var(--u));cursor:grab;user-select:none;-webkit-user-select:none;font-weight:600;font-size:calc(13*var(--u));white-space:nowrap}
+.node:active{cursor:grabbing}
+.node svg{width:calc(89*var(--u));height:calc(75*var(--u));overflow:visible;transition:transform .35s cubic-bezier(.3,1.6,.5,1)}
+.node .st{transition:transform .6s;transform-origin:44.5px 44px}
+.node:hover svg,.node:focus-visible svg{transform:translateY(calc(-6*var(--u))) rotate(-4deg)}
+.node:hover .st{transform:rotate(180deg)}
+.node:hover .fl{transform:skewX(-14deg) scaleY(.92)}
+.fl{transition:transform .35s;transform-origin:0 75px}
+.node.lab{font-weight:500}
+.hint{font-size:calc(12*var(--u));color:#777}
+
+/* footer */
+#footer{height:calc(735*var(--u))}
+.flinks a{color:var(--blue);text-decoration:none}
+.flinks a:hover{background:var(--blue);color:#fff}
+.preview{background:var(--gray);overflow:hidden;cursor:pointer;display:block;border:0}
+.preview canvas{width:100%;height:100%;display:block}
+.cap{color:#777}
+#bigast{width:calc(77*var(--u));height:calc(77*var(--u));transition:transform .2s linear}
+
+#intro{position:fixed;inset:0;z-index:100;background:#fff;overflow:hidden;cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;transition:opacity .8s .35s,visibility .8s .35s}
+#intro.out{opacity:0;visibility:hidden;pointer-events:none}
+body.locked{overflow:hidden}
+#icv{position:absolute;inset:0;width:100%;height:100%}
+#ihold{position:absolute;left:50%;top:50%;width:1px;height:1px;opacity:0}
+#ihold:focus-visible+.ihint{color:var(--blue)}
+.ihint{position:absolute;left:50%;transform:translateX(-50%);font:11px/1 var(--mono);letter-spacing:.32em;color:#9a9a9a;opacity:0;transition:opacity .6s;pointer-events:none;white-space:nowrap}
+.ihint.on{opacity:1}
+
+/* modal */
+.modal{position:fixed;inset:0;background:rgba(255,255,255,.75);backdrop-filter:blur(3px);display:none;place-items:center;z-index:50;padding:16px}
+.modal.open{display:grid}
+.sheet{background:#fff;border:1px solid #000;width:min(560px,100%);max-height:90vh;overflow:auto;font-size:14px;box-shadow:10px 10px 0 var(--c,#000);animation:pop .35s cubic-bezier(.3,1.4,.5,1)}
+@keyframes pop{from{transform:translateY(12px) scale(.97);opacity:0}}
+.sheet header{display:flex;justify-content:space-between;align-items:center;background:var(--c,#000);padding:8px 12px;gap:10px}
+.sheet header span{background:#000;color:#fff;padding:0 .3em}
+.sheet header button{background:#fff;border:1px solid #000;width:32px;height:32px;font-size:18px}
+.sheet .in2{padding:16px 18px 20px}
+.sheet h3{font-family:var(--serif);font-weight:400;font-size:26px;margin:0 0 6px;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:.12em}
+.sheet p{margin:0 0 14px}
+.bars div{display:grid;grid-template-columns:7.5em 1fr 3em;gap:8px;align-items:center;margin-bottom:6px}
+.bars i{height:12px;background:repeating-linear-gradient(90deg,#000 0 3px,transparent 3px 5px);display:block;width:0;transition:width .9s cubic-bezier(.2,.8,.2,1)}
+.bars s{text-decoration:none;text-align:right;color:var(--blue)}
+.sample{font-size:12px;color:#777}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
+
+/* ---------- mobile ---------- */
+@media (max-width:899px){
+  :root{--u:1px}
+  body{font-size:14px}
+  .sec{height:auto!important;padding:28px 16px}
+  .abs{position:relative;left:auto;top:auto}
+  .box{width:auto;height:auto}
+  .deco,.gl{display:none}
+  .tick{height:54px;margin:0}
+  .tk{width:1500px;height:54px}
+  #hero{padding-top:20px;display:flex;flex-direction:column;gap:14px}
+  #hbrand{order:1}
+  #emo{order:2;display:flex;flex-wrap:wrap;gap:4px 14px}
+  #lens{position:relative;inset:auto;order:3;flex:none;width:calc(100% + 32px);margin:-6px -16px;height:min(100vw,56svh,460px)}
+  #hero .lctl{order:4}
+  #hero .welcome{order:5;margin-top:6px}
+  #hero .tree{order:6}
+  #hero .scroll-btn{order:7;align-self:flex-end}
+  .abs{width:auto!important;height:auto!important}
+  .tree{height:auto!important;border-left:1px solid #000;padding:2px 0}
+  .tree a{position:relative!important;top:auto!important;left:0;display:block;width:max-content;margin:8px 0 8px 58px;background:#fff;z-index:2}
+  #bigast{width:56px!important;height:56px!important}
+  #vision{display:flex;flex-direction:column;gap:22px}
+  #vision .idx{order:5}
+  h2.vh{font-size:27px}
+  .astb{display:none}
+  h2.ph{font-size:30px;line-height:40px}
+  #philosophy{display:flex;flex-direction:column;gap:22px}
+  .tags{display:flex;flex-wrap:wrap;gap:10px 16px;order:3}
+  .tags .tag{position:static}
+  .gboxes{display:none}
+  #archive{display:flex;flex-direction:column;gap:22px}
+  #graph{height:520px!important;width:100%!important}
+  .node{font-size:11px}.node svg{width:62px;height:52px}
+  #footer{display:flex;flex-direction:column;gap:22px}
+  .preview{height:200px!important;width:100%!important}
+  #bigast{width:56px;height:56px;align-self:center}
+  .fbot{display:flex;justify-content:space-between}
+}
+</style>
+</head>
+<body class="locked">
+<div id="intro" role="dialog" aria-modal="true" aria-label="KIRARA: LAB">
+  <canvas id="icv" aria-hidden="true"></canvas>
+  <button id="ihold" aria-label="Press and hold to enter KIRARA: LAB (sound on)"></button>
+  <div class="ihint" id="ihint" aria-hidden="true">PRESS &amp; HOLD</div>
+</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="ast" viewBox="0 0 24 24"><g stroke="currentColor" stroke-width="3.6" stroke-linecap="butt"><path d="M2 12h20"/><path d="M6.5 2.5l11 19"/><path d="M17.5 2.5l-11 19"/></g></symbol>
+  <symbol id="ast2" viewBox="0 0 24 24"><g stroke="currentColor" stroke-width="3.2"><path d="M12 2v20"/><path d="M3.3 7l17.4 10"/><path d="M20.7 7L3.3 17"/></g></symbol>
+</svg>
+
+<!-- top ticker -->
+<div class="tick" aria-label="KIRARA: LAB — emotional research — system active">
+  <div class="track" id="t1"></div>
+</div>
+
+<!-- HERO -->
+<section class="sec" id="hero">
+  <canvas id="lens" tabindex="0" aria-label="KIRARA logo carousel — drag sideways or use the arrow keys to change the logo"></canvas>
+
+  <div class="abs" id="hbrand" style="--x:15;--y:50">
+    <div class="brand u">KIRARA: LAB</div>
+    <div style="margin-top:calc(4*var(--u))">Institute for the Study of Emotions</div>
+  </div>
+
+  <ul class="emo abs" style="--x:15;--y:105" id="emo" aria-label="Emotion tracks"></ul>
+
+  <div class="tree abs deco-m" style="--x:26;--y:62;height:calc(335*var(--u))">
+    <a href="#vision" style="top:calc(256*var(--u))"><span>VISION</span></a>
+    <a href="#archive" style="top:calc(278*var(--u))"><span>REPORT ARCHIVE</span></a>
+    <a href="#philosophy" style="top:calc(319*var(--u))"><span>EMOTION LAB</span></a>
+  </div>
+
+  <div class="welcome abs" style="--x:15;--y:556;width:calc(225*var(--u))">
+    <b>WELCOME TO KIRARA LAB.</b><br>
+    What are your emotions made of? We observe, collect, and explore the hidden structures of human emotions.<br>
+    Discover the patterns within your feelings. Begin your emotional exploration.
+  </div>
+
+  <div class="abs lctl" style="--x:1150;--y:590;width:calc(257*var(--u))"><div class="np" id="np" hidden><button id="pp" aria-label="Pause">❚❚</button><span id="npt"></span></div><div class="npbar" id="npbw" hidden><b id="npb"></b></div><div id="mode" aria-live="polite"></div><div class="lbtn"><button id="prev" aria-label="Previous logo">←</button><span>DRAG</span><button id="next" aria-label="Next logo">→</button></div></div>
+  <a class="scroll-btn abs" href="#vision" style="--x:1231;--y:701"><i>↓</i> Scroll To Observe <i>↓</i></a>
+</section>
+
+<!-- VISION -->
+<section class="sec" id="vision">
+  <div class="deco" id="rects"></div>
+
+  <div class="idx abs" style="--x:1231;--y:118">
+    <span class="lbl">RESEARCH INDEX:</span>
+    <a href="#philosophy">01. <span>METHODOLOGY</span></a>
+    <a href="#philosophy">02. <span>VISUAL TRANSLATION</span></a>
+    <a href="#archive">03. <span>ARCHIVE</span></a>
+  </div>
+
+  <div class="abs" style="--x:807;--y:202"><span class="lbl">VISION:</span></div>
+  <div class="astb abs box" style="--x:783;--y:222;--w:20;--h:20"><svg><use href="#ast2"/></svg></div>
+  <h2 class="vh abs" style="--x:807;--y:224">An Experimental Study on the<br>Invisible Structures of Emotion.</h2>
+
+  <div class="paras abs" id="paras" style="--x:807;--y:309;width:calc(470*var(--u))">
+    <span class="gl" style="left:calc(433*var(--u));top:calc(26*var(--u));width:calc(60*var(--u));height:calc(20*var(--u));background:var(--blue)"></span>
+    <span class="gl" style="left:calc(223*var(--u));top:calc(66*var(--u));width:calc(308*var(--u));height:calc(18*var(--u));background:var(--blue)"></span>
+    <span class="gl" style="left:calc(435*var(--u));top:calc(92*var(--u));width:calc(35*var(--u));height:calc(20*var(--u));background:var(--cyan)"></span>
+    <span class="gl" style="left:calc(441*var(--u));top:calc(112*var(--u));width:calc(82*var(--u));height:calc(18*var(--u));background:var(--cyan)"></span>
+    <span class="gl" style="left:calc(419*var(--u));top:calc(131*var(--u));width:calc(75*var(--u));height:calc(18*var(--u));background:var(--cyan)"></span>
+    <p><span class="hl">We believe emotions are more than what we simply feel.</span></p>
+    <p><span class="hl">Through KIRARA's music, sound interacts with the brain and senses, evoking unfamiliar emotional experiences that go beyond ordinary feelings.</span></p>
+    <p><span class="hl">We seek to discover these hidden emotions, explore the structures behind them, and uncover the unique patterns formed through the interaction of sound and emotion.</span></p>
+    <p><span class="hl">By translating these invisible experiences into visual forms, KIRARA : LAB aims to create new ways of perceiving, understanding, and experiencing emotions.</span></p>
+  </div>
+
+  <div class="focus abs" style="--x:807;--y:546">
+    <span class="lbl">RESEARCH FOCUS:</span>
+    <a class="u" href="#philosophy">EMOTION AS STRUCTURE</a>
+    <a class="u" href="#philosophy">OBSERVATION BEYOND DEFINITION</a>
+    <a class="u" href="#archive">TRANSLATION INTO VISUAL FORM</a>
+  </div>
+</section>
+
+<!-- PHILOSOPHY -->
+<section class="sec" id="philosophy">
+  <div class="abs" style="--x:64;--y:18"><span class="lbl">PHILOSOPHY:</span></div>
+  <h2 class="ph abs" style="--x:64;--y:44"><span>On the Observation</span><span>of Invisible</span><span>Emotional Structures.</span></h2>
+
+  <div class="stmt abs" style="--x:1070;--y:40" id="stmt">
+    <div class="h4" style="cursor:default;width:auto">[RESEARCH STATEMENT]</div>
+  </div>
+
+  <div class="purpose abs" style="--x:15;--y:238;width:calc(337*var(--u));height:calc(170*var(--u))">
+    <div class="blue" style="display:flex;justify-content:space-between;margin:0 calc(-12*var(--u))"><span>[ RESEARCH</span><span>PURPOSE ]</span></div>
+    <p>KIRARA : LAB investigates the emotional experiences evoked by KIRARA's music and their underlying neural responses.<br>Through observation and analysis, we explore how sound stimulates the brain and shapes emotional experiences.</p>
+  </div>
+
+  <div class="body abs" style="--x:601;--y:270;width:calc(575*var(--u))">
+    <p>Rather than treating emotions as predefined categories, we approach them as evolving experiences shaped by neural activity, sensory perception, and individual responses.</p>
+    <p>Through KIRARA's music, we examine how sound stimulates the brain and nervous system, influences sensory perception, and triggers emotional responses. We observe how these responses interact, overlap, and evolve into complex emotional experiences.</p>
+    <p>Each emotional state is analyzed through its internal relationships and distinctive patterns.</p>
+    <p>We reorganize these characteristics into visual elements such as points, lines, forms, density, and movement, creating alternative representations of emotions that cannot be seen directly.</p>
+  </div>
+
+  <div class="phil abs" style="--x:15;--y:452;width:calc(330*var(--u))">
+    <h4>[RESEARCH PHILOSOPHY]</h4>
+    <dl style="margin:0" id="phil"></dl>
+  </div>
+
+  <div class="gboxes deco">
+    <div class="r abs box" style="--x:807;--y:598;--w:248;--h:183;outline:0"></div>
+    <div class="r abs box" style="--x:1070;--y:598;--w:248;--h:183;outline:0"></div>
+  </div>
+
+  <div class="tags" id="tags"></div>
+</section>
+
+<!-- ARCHIVE -->
+<section class="sec" id="archive">
+  <div class="abs" style="--x:15;--y:88;width:calc(345*var(--u))">
+    <span class="lbl">REPORT ARCHIVE:</span>
+    <p class="blue" style="margin:calc(10*var(--u)) 0 0">Emotional ambiguity, inconsistency, and complexity are not errors<br>to be corrected, but characteristics to be observed.</p>
+  </div>
+  <div class="params abs" style="--x:15;--y:225">
+    <h4 class="h4">[ANALYSIS PARAMETERS]</h4>
+    <div id="params"></div>
+    <h4 class="h4" style="margin-top:calc(42*var(--u))">[REPORT FOCUS]</h4>
+    <div id="focus"></div>
+  </div>
+  <div class="abs" id="graph" style="--x:440;--y:115;width:calc(970*var(--u));height:calc(520*var(--u))">
+    <svg class="lines" id="lines" aria-hidden="true"></svg>
+  </div>
+  <div class="hint abs" style="--x:440;--y:660">Drag the folders · click to open a report</div>
+</section>
+
+<div class="tick band"><div class="track" id="t2"></div></div>
+
+<!-- FOOTER -->
+<footer class="sec" id="footer">
+  <div class="abs" style="--x:15;--y:35;width:calc(230*var(--u))">
+    <div class="brand u">KIRARA: LAB</div>
+    <div style="margin-top:calc(6*var(--u))">Institute for the Study of Emotions</div>
+  </div>
+  <div class="flinks abs" style="--x:15;--y:117;width:calc(240*var(--u))">
+    <h4 class="h4" style="margin-bottom:calc(6*var(--u))">[EXPLORE]</h4>
+    <a href="#philosophy">Research Purpose</a> <a href="#philosophy">//Research Philosophy</a><br>
+    <a href="#vision">//Observation Method</a><br>
+    <a href="#archive">Emotional Specimens //</a><br>
+    <a href="#archive">Research Archive</a><br>
+    <a href="#hero">//Element Laboratory</a>
+    <h4 class="h4" style="margin:calc(22*var(--u)) 0 calc(6*var(--u))">[INFORMATION]</h4>
+    <a href="mailto:kiraalab@gmail.com">Contact: kiraalab@gmail.com</a>
+    <h4 class="h4" style="margin:calc(22*var(--u)) 0 calc(6*var(--u))">[LABORATORY INFORMATION]</h4>
+    <div class="blue" style="display:grid;grid-template-columns:auto auto;column-gap:calc(18*var(--u));width:max-content"><span>Research &amp; Visual<br>Experiments</span><span><br>Sound ,Brain<br>,Emotion</span></div>
+    <div class="blue" style="margin-top:calc(8*var(--u))">All Research Records<br>Available in Archive</div>
+    <div class="blue" style="padding-left:calc(121*var(--u))">END OF PAGE<br><a href="#top" id="totop">RETURN TO TOP</a></div>
+    <div class="blue">:LAB ARCHIVE FOOTER</div>
+  </div>
+  <button class="preview abs box" id="preview" style="--x:953;--y:37;--w:454;--h:277" aria-label="Open report 001 — Emotional Lostness"><canvas id="pv"></canvas></button>
+  <div class="cap abs" style="--x:953;--y:322;width:calc(454*var(--u))">Click to access the Report Archive and view the full research document &nbsp; (REPORT NO. 001 — EMOTIONAL LOSTNESS)</div>
+  <svg id="bigast" class="abs" style="--x:673;--y:650"><use href="#ast2"/></svg>
+  <div class="fbot">
+    <div class="abs" style="--x:15;--y:711">©2026 KIRARA: LAB.</div>
+    <div class="abs" style="--x:1247;--y:711">ALL RIGHTS RESERVED.</div>
+  </div>
+</footer>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="mt">
+  <div class="sheet" id="sheet"></div>
+</div>
+
+<script>
+{
+const $=s=>document.querySelector(s);
+const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const mob=()=>innerWidth<900;
+
+/* ---- tickers ---- */
+const tk=`<div class="tk"><span style="left:calc(15*var(--u));top:calc(16*var(--u))">KIRARA: LAB — EMOTIONAL RESEARCH — SYSTEM ACTIVE //</span><span style="left:calc(111*var(--u));top:calc(34*var(--u))">++ KIRARA ++ EMOTION ++</span><span class="c1" style="left:calc(543*var(--u));top:calc(16*var(--u))">Observing invisible emotional structures -*-*->  Research in progress -*-*->   Internal records available //</span><span class="c1" style="left:calc(399*var(--u));top:calc(34*var(--u))">//Institute for the Study of Emotion</span></div>`;
+$('#t1').innerHTML=tk+tk;$('#t2').innerHTML=tk+tk;
+document.querySelectorAll('#t1 .c1').forEach(e=>e.style.color='var(--blue)');
+
+/* ---- HERO: convex-lens logo carousel ---- */
+const NAMES=['HALFTONE','OUTLINE','SOLID','CONTOUR','HATCH','PIXEL','STRUCTURE','SCANLINE'];
+const NV=NAMES.length;
+const EMO=[{n:'Wish',v:0,k:'wish',f:'audio/wish.mp3'},{n:'Stargaze',v:1,k:'star',f:'audio/stargaze.mp3'},{n:'ct16031',v:5,k:'glitch',f:'audio/ct16031.mp3'},{n:'BLIZZARD',v:3,k:'snow',f:'audio/blizzard.mp3'},{n:'Rain Dance',v:7,k:'rain',f:'audio/raindance.mp3'}];
+$('#emo').innerHTML=EMO.map((e,i)=>`<li><button data-i="${i}" data-v="${e.v}" aria-pressed="false"><svg class="ic"><use href="#ast"/></svg><span class="t">${e.n}</span><span class="tr"><svg><use href="#ast"/></svg><svg><use href="#ast"/></svg></span></button></li>`).join('');
+
+/* logo variants, drawn once into a 4x2 atlas (1024px cells) */
+const CELL=1024,AL=500,AT=74;
+const bars=[0,Math.PI/3,2*Math.PI/3];
+const sdf=(x,y,L=AL,t=AT)=>{let d=1e9;for(const a of bars){const c=Math.cos(a),s=Math.sin(a),u=x*c+y*s,v=-x*s+y*c;d=Math.min(d,Math.max(Math.abs(u)-L,Math.abs(v)-t))}return d};
+function star(g,L=AL,t=AT){g.beginPath();for(let k=0;k<6;k++){const a=k*Math.PI/3,c=Math.cos(a),s=Math.sin(a),nx=-s,ny=c;g.lineTo(L*c-t*nx,L*s-t*ny);g.lineTo(L*c+t*nx,L*s+t*ny);const b=a+Math.PI/6;g.lineTo(2*t*Math.cos(b),2*t*Math.sin(b))}g.closePath()}
+let seed=7;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+const VAR=[
+ g=>{const c=document.createElement('canvas');c.width=c.height=CELL;const h=c.getContext('2d');h.translate(CELL/2,CELL/2);h.beginPath();const s=19;for(let y=-513;y<=513;y+=s)for(let x=-513;x<=513;x+=s){const d=sdf(x,y);if(d>6)continue;const r=8.4*Math.max(0,Math.min(1,(6-d)/10));if(r<.5)continue;h.moveTo(x+r,y);h.arc(x,y,r,0,7)}h.fill();g.filter='blur(1.1px)';g.drawImage(c,-CELL/2,-CELL/2);g.filter='none'},
+ g=>{star(g);g.lineWidth=2.2;g.stroke()},
+ g=>{star(g);g.fill()},
+ g=>{g.lineWidth=3;for(let k=0;k<7;k++){const t=AT-k*12;if(t<3)break;star(g,AL-k*12,t);g.stroke()}},
+ g=>{star(g);g.save();g.clip();g.rotate(Math.PI/4);for(let x=-760;x<760;x+=17)g.fillRect(x,-760,7,1520);g.restore();star(g);g.lineWidth=2;g.stroke()},
+ g=>{seed=7;const s=22;for(let y=-506;y<=506;y+=s){const sh=rnd()<.12?(rnd()-.5)*60:0;for(let x=-506;x<=506;x+=s){if(sdf(x,y)>2)continue;const q=8+rnd()*14;g.fillRect(x-q/2+sh,y-q/2,q,q)}}},
+ g=>{g.lineWidth=3;for(const a of bars){g.save();g.rotate(a);g.strokeRect(-AL,-AT,AL*2,AT*2);g.restore()}g.lineWidth=1.4;g.setLineDash([10,9]);for(const a of bars){g.save();g.rotate(a);g.beginPath();g.moveTo(-AL,0);g.lineTo(AL,0);g.stroke();g.restore()}g.setLineDash([]);g.beginPath();g.arc(0,0,2*AT,0,7);g.stroke();g.beginPath();g.arc(0,0,AL,0,7);g.setLineDash([4,10]);g.stroke();g.setLineDash([])},
+ g=>{star(g);g.save();g.clip();for(let y=-500;y<=500;y+=15){const th=2+9*Math.pow(1-Math.abs(y)/500,1.4);g.fillRect(-520,y-th/2,1040,th)}g.restore()}];
+const atlas=document.createElement('canvas');atlas.width=CELL*4;atlas.height=CELL*2;
+{const g=atlas.getContext('2d');g.fillStyle=g.strokeStyle='#000';VAR.forEach((f,i)=>{g.save();g.translate((i%4)*CELL+CELL/2,Math.floor(i/4)*CELL+CELL/2);f(g);g.restore()})}
+
+const oat=document.createElement('canvas');oat.width=CELL*2;oat.height=CELL;
+{const g=oat.getContext('2d');g.strokeStyle='#000';g.lineWidth=1.5;g.lineJoin='miter';
+ g.save();g.translate(CELL/2,CELL/2);star(g);g.stroke();g.restore();
+ g.save();g.translate(CELL*1.5,CELL/2);g.setLineDash([16,11]);star(g);g.stroke();g.restore()}
+const cv=$('#lens'),hero=$('#hero');
+const gl=cv.getContext('webgl',{premultipliedAlpha:true,antialias:false});
+let W=0,Hh=0,dpr=1,Rl=1,P0=1,Zf=1,cx0=0,cy0=0,lx=0,ly=0;const A=1.32,S=.85;
+let cp=0,tgt=0,prev=0,vel=0,cur=-1,hd=null,idle=performance.now(),lastAuto=0,mx=-1e4,my=-1e4,ms=0,hover=false;
+let prog,U={},spT=null;const SPEC=new Uint8Array(64);
+if(gl){
+ const vs=`attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}`;
+ const fs=`precision highp float;
+ uniform sampler2D T,T2,SP;uniform vec2 res,ctr;uniform float Rl,A,Zf,cp,S,vel,tm,ugl,rip,hi,wsh,wenv,wwave,whi,apl;
+ float sdA(vec2 p){float d=1e9;for(int i=0;i<3;i++){float a=float(i)*1.0471976;float c=cos(a),s=sin(a);float u=p.x*c+p.y*s,v=-p.x*s+p.y*c;d=min(d,max(abs(u)-.977,abs(v)-.1445));}return d;}
+ float ink(vec2 lc,float idx,float bias,float spread){
+  vec2 uv=lc*.5+.5;if(uv.x<0.||uv.x>1.||uv.y<0.||uv.y>1.)return 0.;
+  vec2 cr=vec2(mod(idx,4.),floor(idx/4.));float a=0.;
+  for(int i=-2;i<=2;i++){vec2 q=clamp(uv+vec2(float(i)*spread,0.),.002,.998);a+=texture2D(T,(cr+q)/vec2(4.,2.),bias).a;}
+  return a/5.;}
+ float ln(float d,float w){return 1.-smoothstep(w-1.2,w+1.2,abs(d));}
+ float hs(vec2 c){return fract(sin(dot(c,vec2(12.99,78.23)))*43758.5);}
+ float spec(float x){return texture2D(SP,vec2(clamp(x,0.,1.)*.96+.02,.5)).r;}
+ float proc(vec2 lc,float idx){
+  vec2 P=lc*512.;float sd=sdA(lc)*512.;float ins=1.-smoothstep(-1.,1.,sd);
+  float wv=exp(-wwave*1.8);
+  if(idx<.5){
+   vec2 g=P/19.;vec2 c=floor(g+.5);float dist=length(g-c)*19.;
+   vec2 cu=c*19./512.;float s0=sdA(cu)*512.;
+   float r0=8.4*clamp((6.-s0)/10.,0.,1.);
+   float wave=exp(-pow((length(cu)-wwave*2.3)*5.,2.))*exp(-wwave*1.6);
+   float h=hs(c);float fl=step(.82,fract(h+tm*.9))*whi;
+   float rad=min(r0*(.68+.25*wenv+.85*wave+.45*fl)*(s0<6.?1.:0.),11.);
+   return 1.-smoothstep(rad-1.3,rad+1.3,dist);
+  } else if(idx<1.5){
+   float a=ln(sd,1.1+2.2*apl);
+   for(int j=0;j<3;j++){float fr=wwave*170.-float(j)*38.;if(fr>0.){float k=wv*(1.-float(j)*.28);a=max(a,ln(sd-fr,1.)*k);a=max(a,ln(sd+fr*.45,.9)*k*.7*ins);}}
+   vec2 g=P/34.;vec2 c=floor(g);vec2 f=fract(g)-.5;float h=hs(c);
+   float tw=max(0.,sin(tm*(2.+h*5.)+h*40.))*whi*(h>.5?1.:0.)*ins;
+   float L=.08+.3*tw;
+   float pl=max((1.-smoothstep(.02,.05,abs(f.x)))*(1.-smoothstep(L,L+.04,abs(f.y))),(1.-smoothstep(.02,.05,abs(f.y)))*(1.-smoothstep(L,L+.04,abs(f.x))));
+   return max(a,pl*step(.02,tw));
+  } else if(idx<2.5){
+   float a=ins;float fr=wwave*260.;
+   a*=1.-ln(sd+fr,3.+9.*apl)*wv;
+   a=max(a,ln(sd-wwave*120.,1.5)*wv);
+   return a;
+  } else if(idx<3.5){
+   vec2 Pw=P+vec2(whi*10.*sin(P.y*.05+tm*14.),0.);
+   float s2=sdA(Pw/512.)*512.;float v=-s2;
+   float ph=mod(tm*(10.+70.*wenv),13.);float m=mod(v+ph,13.);float dd=min(m,13.-m);
+   float w=.8+1.4*apl;
+   float a=(1.-smoothstep(w-1.,w+1.,dd))*(1.-smoothstep(-1.,1.,s2));
+   a=max(a,ln(s2,1.1));
+   vec2 g=vec2(P.x/26.,(P.y-tm*55.*(1.+whi*2.))/26.);vec2 c=floor(g);vec2 f=fract(g)-.5;float h=hs(c);
+   float r=(.1+.16*whi+.08*apl)*(h>.8?1.:0.);
+   a=max(a,(1.-smoothstep(r-.05,r+.05,length(f)))*min(1.,.35+whi+apl)*(1.-smoothstep(-1.,40.,s2)));
+   return a;
+  } else if(idx<4.5){
+   float v=(P.x+P.y)*.7071;float m=mod(v+tm*(8.+60.*wenv),17.);
+   float w=min(3.5*(.6+.9*wenv+.8*apl),7.5);
+   return max((1.-smoothstep(w-1.,w+1.,abs(m-8.5)))*ins,ln(sd,1.));
+  } else if(idx<5.5){
+   float row=floor(P.y/22.+.5);float hr=hs(vec2(row,floor(tm*10.)));
+   float sh=hr>.72?(hr-.86)*170.*apl:0.;
+   vec2 Q=vec2(P.x-sh,P.y);vec2 c=floor(Q/22.+.5);vec2 f=Q-c*22.;
+   float h=hs(c+7.);float s0=sdA(c*22./512.)*512.;
+   float q=min((8.+14.*h)*(.3+1.45*spec(abs(c.x)/23.)),21.);
+   return (max(abs(f.x),abs(f.y))<q*.5?1.:0.)*(s0<2.?1.:0.);
+  } else if(idx<6.5){
+   float a=0.;
+   for(int i=0;i<3;i++){float an=float(i)*1.0471976+apl*.07*(float(i)-1.)+wenv*.04*sin(tm*2.+float(i));float c=cos(an),s=sin(an);
+    float u=P.x*c+P.y*s,v=-P.x*s+P.y*c;
+    a=max(a,ln(max(abs(u)-500.,abs(v)-74.),1.3));
+    a=max(a,(1.-smoothstep(.3,1.3,abs(v)))*step(.45,fract(u/19.-tm*(1.+4.*wenv)))*(abs(u)<500.?1.:0.));}
+   float rl=length(P);
+   a=max(a,ln(rl-148.*(1.+.35*wenv+.25*apl),1.3));
+   a=max(a,ln(rl-500.,.8)*step(.5,fract(atan(P.y,P.x)*1.9099+tm*.5)));
+   return a;
+  } else {
+   vec2 Pw=P+vec2(sin(P.y*.025-tm*5.)*16.*wenv,0.);
+   float s2=sdA(Pw/512.)*512.;
+   float row=floor(P.y/15.+.5);float fy=P.y-row*15.;
+   float base=2.+9.*pow(max(0.,1.-abs(row*15.)/500.),1.4);
+   float th=min(base*(.35+1.5*spec(abs(row)/34.)),13.);
+   float a=(1.-smoothstep(th*.5-.8,th*.5+.8,abs(fy)))*(1.-smoothstep(-1.,1.,s2));
+   vec2 g=vec2(P.x/24.,(P.y-tm*260.)/90.);vec2 c=floor(g);vec2 f=fract(g);float h=hs(c);
+   float drop=(h>.86?1.:0.)*(1.-smoothstep(.04,.09,abs(f.x-.5)))*smoothstep(.0,.5,f.y)*(1.-step(.75,f.y))*min(1.,whi*1.5+apl);
+   return max(a,drop*(1.-smoothstep(-1.,30.,s2)));
+  }
+ }
+ float oink(vec2 lc,float idx,float bias,float spread){
+  vec2 uv=lc*.5+.5;if(uv.x<0.||uv.x>1.||uv.y<0.||uv.y>1.)return 0.;float a=0.;
+  for(int i=-2;i<=2;i++){vec2 q=clamp(uv+vec2(float(i)*spread,0.),.002,.998);a+=texture2D(T2,vec2((idx+q.x)/2.,q.y),bias).a;}
+  return a/5.;}
+ void main(){
+  vec2 p=vec2(gl_FragCoord.x,res.y-gl_FragCoord.y);
+  if(ugl>.01){float band=floor(p.y/(res.y/26.));float h=fract(sin(band*91.7+floor(tm*14.)*13.1)*43758.5);if(h>.7)p.x+=(fract(h*17.3)-.5)*ugl*Rl*.35;}
+  vec2 d=(p-ctr)/Rl;float r=length(d);
+  if(rip>.01){d*=1.+rip*.03*sin(r*36.-tm*7.);r=length(d);}
+  if(r*A>1.52){gl_FragColor=vec4(0.);return;}
+  float rf=tan(r*A)/tan(A);
+  vec2 q=(r>1e-5?d/r*rf:d*A/tan(A))*Zf;
+  if(hi>.01)q+=hi*.014*vec2(sin(q.y*55.+tm*23.),cos(q.x*50.+tm*19.));
+  float rb=smoothstep(.4,1.05,r);
+  float kc=floor(cp+.5);float f=cp-kc;float sg=f>=0.?1.:-1.;
+  float o=0.,cov=0.;
+  for(int i=0;i<7;i++){
+   float j=floor(float(i+1)/2.);
+   float k=kc+(i==0?0.:(mod(float(i),2.)==1.?sg*j:-sg*j));
+   float off=k-cp;
+   vec2 lc=vec2(q.x-off*S,q.y);
+   if(abs(lc.x)>1.06||abs(lc.y)>1.06)continue;
+   float dep=abs(off);
+   float bl=smoothstep(.35,2.2,dep);
+   float soft=.006+bl*.05+rb*.05;
+   float sd=sdA(lc);float sil=1.-smoothstep(-soft,soft,sd);
+   float bias=min(bl*2.4+rb*1.8+min(abs(vel)*40.,2.),3.2),spr=bl*.004+min(abs(vel)*.3,.03);
+   float pm=1.-smoothstep(.12,.55,dep);
+   float a=pm>.001?ink(lc,mod(k,8.),bias,spr):0.;
+   if(pm>.001&&wsh>.01)a=mix(a,proc(lc,mod(k,8.)),wsh);
+   a=mix(min(oink(lc,mod(k,2.),min(bl*1.1+rb*3.4+min(abs(vel)*40.,2.),3.6),spr*.5+rb*.014)*(1.6+rb*1.6),1.),a,pm);
+   a*=1.-smoothstep(0.,.02+soft*1.5+wsh*pm*.4,sd);
+   float fade=mix(1.,.5,smoothstep(.3,1.3,dep))*mix(1.,.55,smoothstep(1.3,2.6,dep));
+   o+=(1.-cov)*a*fade;
+   cov+=(1.-cov)*sil;
+   if(cov>.995)break;
+  }
+  o*=mix(1.,.45,smoothstep(.5,1.1,r))*(1.-smoothstep(1.,1.17,r));
+  gl_FragColor=vec4(0.,0.,0.,o);
+ }`;
+ const sh=(t,s)=>{const o=gl.createShader(t);gl.shaderSource(o,s);gl.compileShader(o);if(!gl.getShaderParameter(o,gl.COMPILE_STATUS))console.error(gl.getShaderInfoLog(o));return o};
+ prog=gl.createProgram();gl.attachShader(prog,sh(gl.VERTEX_SHADER,vs));gl.attachShader(prog,sh(gl.FRAGMENT_SHADER,fs));gl.linkProgram(prog);gl.useProgram(prog);
+ const bf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,bf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+ const lp=gl.getAttribLocation(prog,'p');gl.enableVertexAttribArray(lp);gl.vertexAttribPointer(lp,2,gl.FLOAT,false,0,0);
+ ['T','T2','res','ctr','Rl','A','Zf','cp','S','vel','tm','ugl','rip','hi','wsh','wenv','wwave','whi','apl','SP'].forEach(n=>U[n]=gl.getUniformLocation(prog,n));
+ const tx=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,tx);
+ gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,atlas);gl.generateMipmap(gl.TEXTURE_2D);
+ gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+ gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+ gl.uniform1i(U.T,0);
+ const tx2=gl.createTexture();gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,tx2);
+ gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,oat);gl.generateMipmap(gl.TEXTURE_2D);
+ gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+ gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+ gl.uniform1i(U.T2,1);
+ spT=gl.createTexture();gl.activeTexture(gl.TEXTURE2);gl.bindTexture(gl.TEXTURE_2D,spT);gl.pixelStorei(gl.UNPACK_ALIGNMENT,1);
+ gl.texImage2D(gl.TEXTURE_2D,0,gl.LUMINANCE,64,1,0,gl.LUMINANCE,gl.UNSIGNED_BYTE,SPEC);
+ gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+ gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+ gl.uniform1i(U.SP,2);gl.activeTexture(gl.TEXTURE0);
+}
+const g2=gl?null:cv.getContext('2d');
+function size(){const r=cv.getBoundingClientRect();dpr=Math.min(devicePixelRatio||1,2);W=r.width;Hh=r.height;cv.width=Math.round(W*dpr);cv.height=Math.round(Hh*dpr);
+ const m=mob();Rl=m?W*.62:W*.5;cx0=W/2;cy0=m?Hh*.5:Hh*.5;
+ P0=m?Math.min(W*.45,Hh*.42/.92):Math.min(W*.30,Hh*.46/.92);Zf=Rl*Math.tan(A)/(A*P0);if(gl)gl.viewport(0,0,cv.width,cv.height)}
+function render(){
+ if(gl){gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);
+  gl.uniform2f(U.res,cv.width,cv.height);gl.uniform2f(U.ctr,(cx0+lx)*dpr,(cy0+ly)*dpr);
+  gl.uniform1f(U.Rl,Rl*dpr);const Ae=A+FX.lens,zf=Rl*Math.tan(Ae)/(Ae*P0*(1+FX.zoom));gl.uniform1f(U.A,Ae);gl.uniform1f(U.Zf,zf);gl.uniform1f(U.tm,performance.now()/1000);gl.uniform1f(U.ugl,FX.glitch);gl.uniform1f(U.rip,FX.ripple);gl.uniform1f(U.hi,FX.hi);gl.uniform1f(U.wsh,FX.wsh);gl.uniform1f(U.wenv,FX.wenv);gl.uniform1f(U.wwave,FX.wwave);gl.uniform1f(U.whi,FX.whi);gl.uniform1f(U.apl,FX.apl);if(spT){gl.activeTexture(gl.TEXTURE2);gl.bindTexture(gl.TEXTURE_2D,spT);gl.texSubImage2D(gl.TEXTURE_2D,0,0,0,64,1,gl.LUMINANCE,gl.UNSIGNED_BYTE,SPEC);gl.activeTexture(gl.TEXTURE0)}gl.uniform1f(U.cp,cp);gl.uniform1f(U.S,S);gl.uniform1f(U.vel,vel);
+  gl.drawArrays(gl.TRIANGLES,0,3);}
+ else{const c=((Math.round(cp)%NV)+NV)%NV,s=2*P0;g2.setTransform(dpr,0,0,dpr,0,0);g2.clearRect(0,0,W,Hh);g2.drawImage(atlas,(c%4)*CELL,Math.floor(c/4)*CELL,CELL,CELL,cx0-s/2,cy0-s/2,s,s)}}
+const label=()=>{const c=((Math.round(cp)%NV)+NV)%NV;if(c===cur)return;cur=c;
+ $('#mode').textContent=`LOGO ${String(c+1).padStart(2,'0')} / ${String(NV).padStart(2,'0')} — ${NAMES[c]}`;
+ if(sel<0)document.querySelectorAll('#emo button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.v===c))};
+const go=d=>{tgt=Math.round(tgt)+d;idle=performance.now()};
+const goTo=v=>{let d=((v-cur)%NV+NV)%NV;if(d>NV/2)d-=NV;tgt=Math.round(cp)+d;idle=performance.now()};
+/* ---- audio ---- */
+let actx=null,an=null,fd=null,tracks={},sel=-1,playing=false,pulse=0,env=0,hiE=0,bAvg=0,lastBeat=0;
+const FX={zoom:0,lens:0,glitch:0,ripple:0,hi:0,wsh:0,wenv:0,wwave:9,whi:0,apl:0};
+function ensureCtx(){if(actx)return;actx=new(window.AudioContext||window.webkitAudioContext)();an=actx.createAnalyser();an.fftSize=1024;an.smoothingTimeConstant=.55;an.connect(actx.destination);fd=new Uint8Array(an.frequencyBinCount)}
+function trk(i){if(!tracks[i]){const a=new Audio(EMO[i].f);a.loop=false;a.addEventListener('ended',()=>{if(sel===i&&playing&&!tracks[i].out){tracks[i].out=true;playSong((i+1)%EMO.length,true)}});a.preload='auto';const src=actx.createMediaElementSource(a),g=actx.createGain();src.connect(g);g.connect(an);tracks[i]={a,g}}return tracks[i]}
+function fadeG(g,to,ms){const n=actx.currentTime;g.gain.cancelScheduledValues(n);g.gain.setValueAtTime(g.gain.value,n);g.gain.linearRampToValueAtTime(to,n+ms/1000)}
+function ui(){document.querySelectorAll('#emo button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.i===sel));
+ $('#np').hidden=$('#npbw').hidden=sel<0;if(sel<0)return;$('#pp').textContent=playing?'❚❚':'▶';$('#pp').setAttribute('aria-label',playing?'Pause':'Play');
+ $('#npt').textContent=(playing?'NOW PLAYING: ':'PAUSED: ')+EMO[sel].n}
+const XF=3200;
+let ptok=0;
+async function playSong(i,auto){ensureCtx();const tok=++ptok;if(actx.state==='suspended')actx.resume().catch(()=>{});
+ if(!auto&&sel===i&&playing){pauseSong();return}
+ const ms=auto?XF:350;
+ if(sel>=0&&sel!==i&&tracks[sel]){const oi=sel,o=tracks[sel];fadeG(o.g,0,ms);setTimeout(()=>{if(sel!==oi||!playing){o.a.pause();if(auto)o.a.currentTime=0}},ms+60)}
+ sel=i;const t=trk(i);t.out=false;if(auto||t.a.ended)t.a.currentTime=0;if(t.a.paused)t.g.gain.value=0;
+ try{await t.a.play();if(tok!==ptok)return}catch(e){if(tok!==ptok)return;playing=false;ui();$('#npt').textContent='CLICK ANYWHERE TO PLAY: '+EMO[i].n;return}
+ fadeG(t.g,1,auto?XF:400);playing=true;goTo(EMO[i].v);ui()}
+function pauseSong(){const t=tracks[sel];if(!t)return;fadeG(t.g,0,250);setTimeout(()=>{if(!playing)t.a.pause()},260);playing=false;ui()}
+$('#emo').addEventListener('click',e=>{const b=e.target.closest('button');if(b)playSong(+b.dataset.i)});
+$('#pp').addEventListener('click',()=>{if(playing)pauseSong();else if(sel>=0)playSong(sel)});
+/* entry: only the logo. Press & hold fills it; when full it zooms you into the lab and Wish fades in.
+   The press is the gesture browsers need before sound, so Wish starts silently on press and fades up on entry. */
+{const it=$('#intro'),c=$('#icv'),g=c.getContext('2d'),hint=$('#ihint');
+ let IW=0,IH=0,imx=-1e4,imy=-1e4,lens=0,prog=0,hold=false,primed=false,exitT=0,alive=true,last=0;
+ const fit=()=>{const d=Math.min(devicePixelRatio||1,2);IW=innerWidth;IH=innerHeight;c.width=IW*d;c.height=IH*d;g.setTransform(d,0,0,d,0,0)};
+ fit();addEventListener('resize',fit);
+ const R0f=()=>IW<700?Math.min(IW*.36,IH*.22):Math.min(IW*.2,IH*.26);
+ const sd=(x,y,rot)=>{let d=1e9;for(let i=0;i<3;i++){const a=i*Math.PI/3+rot,cs=Math.cos(a),sn=Math.sin(a),u=x*cs+y*sn,v=-x*sn+y*cs;d=Math.min(d,Math.max(Math.abs(u)-.977,Math.abs(v)-.1445))}return d};
+ const hsh=(x,y)=>{const v=Math.sin(x*12.99+y*78.23)*43758.5;return v-Math.floor(v)};
+ const sm=(a,b,x)=>{x=Math.max(0,Math.min(1,(x-a)/(b-a)));return x*x*(3-2*x)};
+ const prime=()=>{if(primed)return;primed=true;try{ensureCtx();actx.resume().catch(()=>{});const t=trk(0);t.g.gain.value=0;t.a.currentTime=0;t.a.play().catch(()=>{})}catch(e){}};
+ const unprime=()=>{if(!primed||exitT)return;primed=false;const t=tracks[0];if(t){t.a.pause();t.a.currentTime=0}};
+ const down=e=>{if(exitT)return;if(e&&e.preventDefault)e.preventDefault();hold=true;hint.classList.remove('on');prime()};
+ const up=()=>{hold=false};
+ it.addEventListener('pointerdown',down);addEventListener('pointerup',up);addEventListener('pointercancel',up);
+ it.addEventListener('contextmenu',e=>e.preventDefault());
+ it.addEventListener('pointermove',e=>{imx=e.clientX;imy=e.clientY});
+ it.addEventListener('pointerleave',()=>{imx=imy=-1e4});
+ $('#ihold').addEventListener('keydown',e=>{if((e.key=='Enter'||e.key==' ')&&!e.repeat){down(e)}});
+ $('#ihold').addEventListener('keyup',e=>{if(e.key=='Enter'||e.key==' ')up()});
+ $('#ihold').focus({preventScroll:true});
+ setTimeout(()=>{if(!hold&&!exitT)hint.classList.add('on')},1400);
+ const enter=()=>{exitT=performance.now();it.classList.add('out');document.body.classList.remove('locked');
+  const t=tracks[0];
+  if(t&&!t.a.paused){sel=0;playing=true;t.out=false;fadeG(t.g,1,1800);goTo(0);ui()}else playSong(0);
+  setTimeout(()=>{alive=false;it.remove()},1300)};
+ function frame(t){if(!alive)return;
+  const dt=Math.min(.25,(t-(last||t))/1000);last=t;
+  if(!exitT){prog=hold?Math.min(1,prog+dt/1.15):Math.max(0,prog-dt*1.8);if(prog>=1)enter();if(prog===0&&!hold)unprime()}
+  const T=t/1000,R0=R0f(),cx=IW/2,cy=IH/2,sp=Math.max(7,R0/21),p=prog;
+  hint.style.top=(cy+R0*1.22+22)+'px';
+  let e=0;if(exitT){e=Math.min(1,(t-exitT)/1000)}
+  const zoom=1+e*e*11;
+  const rot=RM?0:T*.05+p*p*2.2+e*1.5;
+  const sh=!RM&&p>.65&&!exitT?(p-.65)*7:0;
+  lens+=((imx>-1e3&&!hold?1:0)-lens)*.08;
+  g.clearRect(0,0,IW,IH);
+  const ox=cx+(Math.random()-.5)*sh,oy=cy+(Math.random()-.5)*sh;
+  if(p>0&&!exitT){g.strokeStyle='#000';g.lineWidth=1.5;g.beginPath();g.arc(cx,cy,R0*1.22,-Math.PI/2,-Math.PI/2+p*Math.PI*2);g.stroke();
+   g.strokeStyle='rgba(0,0,0,.12)';g.beginPath();g.arc(cx,cy,R0*1.22,0,7);g.stroke()}
+  const LR=R0*.6,ext=R0*1.06,fr=p*1.18;
+  g.globalAlpha=1-e;
+  for(let y=-ext;y<=ext;y+=sp)for(let x=-ext;x<=ext;x+=sp){
+   const d=sd(x/R0,y/R0,rot)*R0;if(d>sp*.6)continue;
+   let r=sp*.47*Math.max(0,Math.min(1,(sp*.5-d)/(sp*.9)));
+   const rr=Math.hypot(x,y)/R0,h=hsh(Math.round(x/sp),Math.round(y/sp));
+   const fill=exitT?1:sm(rr-.1,rr+.1,fr);
+   r*=(.66+.4*fill)*(RM?1:.9+.1*Math.sin(T*1.7-rr*5));
+   let px=ox+x,py=oy+y;
+   if(lens>.01){const dx=px-imx,dy=py-imy,dm=Math.hypot(dx,dy);if(dm<LR){const f=1-dm/LR,k=f*f*lens;r*=1+1.2*k;px+=dx*.4*k;py+=dy*.4*k}}
+   px=cx+(px-cx)*zoom;py=cy+(py-cy)*zoom;r*=zoom;
+   if(r<.3)continue;
+   const v=Math.round(150*(1-fill));
+   g.fillStyle=fill>.5&&h>.965?'#00e5e0':`rgb(${v},${v},${v})`;
+   g.beginPath();g.arc(px,py,r,0,7);g.fill()}
+  g.globalAlpha=1;requestAnimationFrame(frame)}
+ requestAnimationFrame(frame);
+ addEventListener('keydown',e=>{if(e.key=='Escape'&&alive&&!exitT){exitT=performance.now();it.classList.add('out');document.body.classList.remove('locked');setTimeout(()=>{alive=false;it.remove()},1300)}});}
+function audioTick(t){
+ if(an&&playing){an.getByteFrequencyData(fd);let b=0,h=0;for(let i=1;i<=4;i++)b+=fd[i];b/=4*255;for(let i=90;i<280;i++)h+=fd[i];h/=190*255;
+  bAvg+=(b-bAvg)*.04;if(b>bAvg*1.15+.03&&b>.42&&t-lastBeat>220){pulse=1;lastBeat=t}
+  env+=(b-env)*.2;hiE+=(h-hiE)*.25;
+  for(let i=0;i<64;i++){const bi=Math.min(fd.length-1,Math.round(1.5*Math.pow(300/1.5,i/63)));SPEC[i]=Math.round(SPEC[i]*.45+fd[bi]*.55)}
+  const tr=tracks[sel],a=tr.a;if(a.duration){$('#npb').style.width=(a.currentTime/a.duration*100)+'%';if(!tr.out&&a.duration-a.currentTime<XF/1000){tr.out=true;playSong((sel+1)%EMO.length,true)}}}
+ else{env*=.92;hiE*=.92;for(let i=0;i<64;i++)SPEC[i]=SPEC[i]*.9|0}
+ pulse*=.88;
+ const k=sel>=0&&playing?EMO[sel].k:'',m=RM?.3:1;
+ FX.wsh+=((playing?1:0)-FX.wsh)*.08;FX.apl=pulse*m;FX.wenv=Math.min(1,env*1.6)*m;FX.wwave=(t-lastBeat)/1000;FX.whi=Math.min(1,hiE*3)*m;
+ FX.zoom=(pulse*.09+(k=='wish'?env*.03:0))*m;
+ FX.lens=pulse*.2*m;
+ FX.glitch=(k=='glitch'?pulse*.6+hiE*.2:0)*m;
+ FX.ripple=(k=='rain'?env*.8+pulse*.4:0)*m;
+ FX.hi=(k=='star'?hiE*.35:k=='snow'?hiE*.5+pulse*.2:0)*m}
+$('#prev').onclick=()=>go(-1);$('#next').onclick=()=>go(1);
+cv.addEventListener('keydown',e=>{if(e.key=='ArrowRight'){e.preventDefault();go(1)}if(e.key=='ArrowLeft'){e.preventDefault();go(-1)}});
+cv.addEventListener('pointerdown',e=>{hd={x:e.clientX,y:e.clientY,t:performance.now(),v:0,on:false,id:e.pointerId};idle=performance.now()});
+addEventListener('pointermove',e=>{const r=cv.getBoundingClientRect();mx=e.clientX-r.left;my=e.clientY-r.top;hover=mx>=0&&my>=0&&mx<=W&&my<=Hh&&!mob();
+ if(!hd)return;const dx=e.clientX-hd.x,dy=e.clientY-hd.y;
+ if(!hd.on){if(Math.abs(dx)>6&&Math.abs(dx)>Math.abs(dy)){hd.on=true;cv.setPointerCapture(hd.id);cv.classList.add('drag')}else if(Math.abs(dy)>10){hd=null;return}else return}
+ const now=performance.now(),dp=-dx/(P0*S);cp+=dp;tgt=cp;hd.v=hd.v*.6+dp/Math.max(8,now-hd.t)*16*.4;hd.x=e.clientX;hd.y=e.clientY;hd.t=now;idle=now});
+const end=()=>{if(!hd)return;if(hd.on){const v=Math.max(-1.5,Math.min(1.5,hd.v));tgt=Math.round(cp+v*7)}hd=null;cv.classList.remove('drag');idle=performance.now()};
+addEventListener('pointerup',end);addEventListener('pointercancel',end);
+hero.addEventListener('pointerleave',()=>{hover=false});
+cv.addEventListener('wheel',e=>{if(Math.abs(e.deltaX)>Math.abs(e.deltaY)&&Math.abs(e.deltaX)>2){e.preventDefault();cp+=e.deltaX/(P0*S)*.8;tgt=Math.round(cp+Math.sign(e.deltaX)*.3);idle=performance.now()}},{passive:false});
+let heroOn=true;new IntersectionObserver(es=>{heroOn=es[0].isIntersecting}).observe(hero);
+function loop(t){
+ audioTick(t);
+ if(heroOn){
+  if(!hd||!hd.on){if(!RM&&sel<0&&!document.getElementById('intro')&&t-idle>5000&&t-lastAuto>4200){tgt=Math.round(tgt)+1;lastAuto=t}
+   cp+=(tgt-cp)*(RM?1:.085);if(Math.abs(tgt-cp)<1e-4)cp=tgt}
+  vel+=((cp-prev)*1.15-vel)*.35;prev=cp;
+  ms+=((hover&&!RM?1:0)-ms)*.06;
+  label();render()}
+ requestAnimationFrame(loop)}
+size();label();requestAnimationFrame(loop);
+
+/* ---- vision rects ---- */
+const RECTS=[[601,151,164,230,1],[673,132,102,72,.6],[783,65,96,121,1.4],[894,150,52,36,.8],[713,407,36,50,.5],[732,437,51,35,.5],[670,535,72,103,.9],[1116,565,229,178,.7],[1070,646,121,97,1.1],[1319,676,51,35,1.3],[1311,291,51,37,1.6]];
+const ACC=[[601,145,64,12,'var(--lime)',1],[946,150,10,36,'var(--mag)',.8],[698,396,52,12,'#000',.5],[692,408,10,10,'#000',.5],[698,525,50,10,'var(--mag)',.9],[1070,636,46,10,'var(--lime)',1.1],[1146,636,46,10,'var(--lime)',1.1],[1356,565,10,10,'#000',.7],[1345,576,10,10,'#000',.7],[1311,281,51,10,'var(--blue)',1.6],[1363,292,10,10,'var(--blue)',1.6]];
+$('#rects').innerHTML=RECTS.map(r=>`<div class="r abs box" data-p="${r[4]}" style="--x:${r[0]};--y:${r[1]};--w:${r[2]};--h:${r[3]}"></div>`).join('')+ACC.map(a=>`<div class="c abs box" data-p="${a[5]}" style="--x:${a[0]};--y:${a[1]};--w:${a[2]};--h:${a[3]};background:${a[4]}"></div>`).join('')+`<div class="r abs box" style="--x:807;--y:657;--w:51;--h:35"></div>`;
+const par=[...document.querySelectorAll('#rects [data-p]')];
+const vis=$('#vision');
+new IntersectionObserver(es=>es.forEach(e=>e.isIntersecting&&e.target.classList.add('in')),{threshold:.35}).observe($('#paras'));
+
+/* ---- philosophy ---- */
+const ST=['SOUND','PERCEPTION','EMOTION','STRUCTURE','VISUALIZATION','INTERPRETATION'];
+$('#stmt').insertAdjacentHTML('beforeend',ST.map((s,i)=>`<div data-g="0${i+1}" tabindex="0"><span>${s}</span><span>#0${i+1}</span></div>`).join(''));
+const TAGS=[
+ [441,85,'06.1','Sensory Density','var(--paleB)'],[712,123,'','(Feelings leave traces)'],[601,145,'','(Emotion is unstable)'],
+ [1184,83,'04.2','Non-fixed States','var(--lav)'],[962,247,'01.2','Emotional Perception','var(--lime)'],[326,289,'01.1','Sensory Extraction','var(--lime)'],
+ [352,348,'','(Emotional pattern)'],[1208,309,'','(Reconstruct what<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cannot be seen)'],[722,408,'04.1','Structural Transformation','var(--lav)'],
+ [1143,408,'03.2','Internal Relationships','var(--paleY)'],[256,486,'06.2','Visual Reconstruction','var(--paleB)'],[1107,538,'','(No fixed emotional boundaries)'],
+ [529,586,'02.1','Individual Response','#ff6fd8'],[781,663,'05.2','Signal Variation','#fff'],[962,640,'05.1','Patterns of Connection','#fff'],
+ [466,711,'','(Observe the unexplainable)'],[863,729,'','(Anomaly is not an error)'],[425,734,'03.1','Emotional Irregularity','var(--paleY)'],[1263,684,'02.2','Visual Translation','#ff6fd8']];
+$('#tags').innerHTML=TAGS.map(t=>t[2]?`<div class="tag abs" data-g="${t[2].slice(0,2)}" style="--x:${t[0]};--y:${t[1]}"><b>#${t[2]}</b><em style="background:${t[4]}">${t[3]}</em></div>`:`<div class="tag n abs" style="--x:${t[0]};--y:${t[1]}"><em>${t[3]}</em></div>`).join('');
+const ph=$('#philosophy');
+const hiG=g=>{ph.classList.toggle('dim',!!g);document.querySelectorAll('#tags .tag').forEach(t=>t.classList.toggle('on',!!g&&t.dataset.g==g))};
+$('#stmt').addEventListener('pointerover',e=>{const d=e.target.closest('[data-g]');hiG(d?d.dataset.g:null)});
+$('#stmt').addEventListener('pointerleave',()=>hiG(null));
+$('#stmt').addEventListener('focusin',e=>{const d=e.target.closest('[data-g]');hiG(d&&d.dataset.g)});
+$('#stmt').addEventListener('focusout',()=>hiG(null));
+document.querySelectorAll('#tags .tag[data-g]').forEach(t=>{t.addEventListener('pointerenter',()=>hiG(t.dataset.g));t.addEventListener('pointerleave',()=>hiG(null))});
+const PH=[['Emotion is not fixed.','Emotions are constantly changing experiences shaped by individual perception, intensity, and context.'],
+ ['Irregularity is meaningful.','Emotional ambiguity, inconsistency, and complexity are not errors to be corrected, but characteristics to be observed.'],
+ ['There is no single interpretation.','We do not seek to define emotions through fixed forms, but to reinterpret their structures through visual experimentation.']];
+$('#phil').innerHTML=PH.map((p,i)=>`<dt tabindex="0">0${i+1}. ${p[0]}</dt><dd>${p[1]}</dd>`).join('');
+$('#phil').addEventListener('click',e=>{const dt=e.target.closest('dt');if(!dt)return;const dd=dt.nextElementSibling;const c=dd.style.maxHeight==='0px';dd.style.maxHeight=c?'8em':'0px';dd.style.opacity=c?1:.2});
+
+/* ---- archive ---- */
+const PAR=['Intensity','Frequency','Repetition','Distortion','Variation','Density','Connection'];
+const FOC=['Sound Stimulation','Brain Activity','Neural Responses','Sensory Processing','Emotional Formation','Pattern Analysis','Visual Translation'];
+$('#params').innerHTML=PAR.map(p=>`<a href="#graph">--&gt; ${p}</a>`).join('');
+$('#focus').innerHTML=FOC.map((p,i)=>`<a href="#graph">0${i+1}. ${p}</a>`).join('');
+const N=[
+ {id:'lab',n:'[KIRARA: LAB]',c:'#000',x:.407,y:.342,no:'000',v:[50,50,50,50,50,50,100],t:'The central index of the archive. Every specimen below was recorded while listening to KIRARA\'s music and is connected back to this node.'},
+ {id:'lost',n:'EMOTIONAL LOSTNESS',c:'var(--cyan)',x:.195,y:.054,no:'001',v:[42,28,71,63,55,38,24],t:'A drifting state with no clear direction. Responses repeat without settling, and the listener loses the boundary between their own feeling and the sound.'},
+ {id:'pride',n:'OVERHEATED PRIDE',c:'var(--red)',x:.649,y:.10,no:'002',v:[91,64,40,58,33,72,47],t:'High intensity with a narrow focus. Pride rises past its usual limit and starts to distort how the rest of the sound is perceived.'},
+ {id:'over',n:'OVERLOAD',c:'var(--lime)',x:.045,y:.262,no:'003',v:[96,88,82,77,61,94,52],t:'Too many signals at once. Density and frequency peak together, and the emotional structure becomes a dense field with no single centre.'},
+ {id:'casc',n:'CASCADING RELEASE',c:'var(--green)',x:.76,y:.677,no:'004',v:[68,52,35,22,84,41,79],t:'Tension that releases in steps rather than all at once. Each release triggers the next, forming a chain of connected states.'},
+ {id:'glit',n:'GLITCHED EXCITEMENT',c:'var(--mag)',x:.288,y:.779,no:'005',v:[79,93,57,89,92,48,36],t:'Excitement that breaks its own rhythm. Short, irregular spikes interrupt the signal — an anomaly that is not an error.'}];
+const gEl=$('#graph'),ln=$('#lines');
+const folder=(c,lab)=>`<svg viewBox="0 0 89 75"><path d="M0 0h29l7 11H0z" fill="${c}"/><g class="fl"><rect y="11" width="89" height="64" fill="${c}"/></g><g class="st" color="${lab?'#fff':'#000'}"><use href="#ast2" x="26" y="26" width="37" height="37"/></g></svg>`;
+gEl.insertAdjacentHTML('beforeend',N.map(n=>`<div class="node ${n.id=='lab'?'lab':''}" tabindex="0" role="button" aria-label="Open report ${n.no} ${n.n}" data-id="${n.id}">${folder(n.c,n.id=='lab')}<span>${n.n}</span></div>`).join(''));
+const nodes={};document.querySelectorAll('.node').forEach(el=>nodes[el.dataset.id]=el);
+let pos={};
+function place(reset){const w=gEl.clientWidth,h=gEl.clientHeight;const m=mob();N.forEach(n=>{if(reset||!pos[n.id]){let x=n.x,y=n.y;if(m){x=.12+n.x*.76;y=.06+n.y*.86}pos[n.id]={x:x*w+45*(m?.7:k2()),y:y*h+40*(m?.7:k2())}}const p=pos[n.id];nodes[n.id].style.left=p.x+'px';nodes[n.id].style.top=p.y+'px'});lines()}
+const k2=()=>innerWidth/1422;
+function lines(){const c=pos.lab;ln.innerHTML=N.filter(n=>n.id!='lab').map(n=>`<line x1="${c.x}" y1="${c.y}" x2="${pos[n.id].x}" y2="${pos[n.id].y}" stroke="#999" stroke-width="1"/>`).join('')}
+let drag=null;
+gEl.addEventListener('pointerdown',e=>{const el=e.target.closest('.node');if(!el)return;drag={id:el.dataset.id,sx:e.clientX,sy:e.clientY,px:pos[el.dataset.id].x,py:pos[el.dataset.id].y,moved:false};el.setPointerCapture(e.pointerId)});
+gEl.addEventListener('pointermove',e=>{if(!drag)return;const dx=e.clientX-drag.sx,dy=e.clientY-drag.sy;if(Math.hypot(dx,dy)>4)drag.moved=true;const w=gEl.clientWidth,h=gEl.clientHeight;pos[drag.id]={x:Math.max(20,Math.min(w-20,drag.px+dx)),y:Math.max(20,Math.min(h-20,drag.py+dy))};const el=nodes[drag.id];el.style.left=pos[drag.id].x+'px';el.style.top=pos[drag.id].y+'px';lines()});
+gEl.addEventListener('pointerup',()=>{if(drag&&!drag.moved)openR(drag.id);drag=null});
+gEl.addEventListener('keydown',e=>{const el=e.target.closest('.node');if(el&&(e.key=='Enter'||e.key==' ')){e.preventDefault();openR(el.dataset.id)}});
+// idle float
+let ft=0;function floatN(t){if(!drag&&!RM){N.forEach((n,i)=>{const p=pos[n.id];if(!p)return;nodes[n.id].style.transform=`translate(-50%,-50%) translate(${Math.sin(t/1400+i*2)*4}px,${Math.cos(t/1700+i)*4}px)`})}requestAnimationFrame(floatN)}
+requestAnimationFrame(floatN);
+
+/* ---- modal ---- */
+const modal=$('#modal'),sheet=$('#sheet');let lastF=null;
+function openR(id){const n=N.find(x=>x.id==id);lastF=document.activeElement;sheet.style.setProperty('--c',n.c);
+ sheet.innerHTML=`<header><span>REPORT NO. ${n.no}</span><button aria-label="Close" id="mx">×</button></header><div class="in2"><h3 id="mt">${n.n.replace(/[\[\]]/g,'')}</h3><p class="blue">Observation record — KIRARA : LAB</p><p>${n.t}</p><h4 class="h4" style="font-size:14px">[ANALYSIS PARAMETERS]</h4><div class="bars">${PAR.map((p,i)=>`<div><span>${p}</span><i data-w="${n.v[i]}"></i><s>${n.v[i]}</s></div>`).join('')}</div><p class="sample">Sample values for the prototype — replace with real research data.</p></div>`;
+ modal.classList.add('open');requestAnimationFrame(()=>requestAnimationFrame(()=>sheet.querySelectorAll('.bars i').forEach(b=>b.style.width=b.dataset.w+'%')));$('#mx').focus();$('#mx').onclick=closeR}
+function closeR(){modal.classList.remove('open');lastF&&lastF.focus&&lastF.focus()}
+modal.addEventListener('click',e=>{if(e.target==modal)closeR()});
+addEventListener('keydown',e=>{if(e.key=='Escape'&&modal.classList.contains('open'))closeR()});
+$('#preview').addEventListener('click',()=>openR('lost'));
+document.querySelectorAll('#params a,#focus a').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();gEl.scrollIntoView({behavior:'smooth',block:'center'});Object.values(nodes).forEach((el,i)=>{el.animate([{filter:'none'},{filter:'invert(1)'},{filter:'none'}],{duration:500,delay:i*80})})}));
+
+/* ---- footer preview (mini halftone) ---- */
+const pv=$('#pv'),pc=pv.getContext('2d');
+function drawPV(t){const w=pv.clientWidth,h=pv.clientHeight,d=devicePixelRatio||1;if(pv.width!=w*d){pv.width=w*d;pv.height=h*d}pc.setTransform(d,0,0,d,0,0);pc.clearRect(0,0,w,h);
+ const sp=11;for(let y=sp/2;y<h;y+=sp)for(let x=sp/2;x<w;x+=sp){const v=Math.sin(x*.03+t/900)+Math.cos(y*.04-t/1300)+Math.sin((x+y)*.015);const r=Math.max(0,v+.6)*2;if(r<.3)continue;pc.fillStyle=v>1.5?'#00e5e0':'#bdbdbd';pc.beginPath();pc.arc(x,y,r,0,7);pc.fill()}}
+let pvOn=false;new IntersectionObserver(es=>pvOn=es[0].isIntersecting).observe(pv);
+(function pl2(t){if(pvOn||RM)drawPV(RM?0:t);if(!RM)requestAnimationFrame(pl2)})(0);
+
+/* ---- scroll effects ---- */
+const big=$('#bigast');
+function onScroll(){const y=scrollY;
+ if(!mob()&&!RM){const vt=vis.offsetTop;par.forEach(el=>{el.style.transform=`translateY(${(y-vt+innerHeight*.4)*-.12*(+el.dataset.p-1)}px)`})}
+ big.style.transform=`rotate(${y*.15}deg)`;}
+addEventListener('scroll',onScroll,{passive:true});onScroll();
+$('#totop').addEventListener('click',e=>{e.preventDefault();scrollTo({top:0,behavior:RM?'auto':'smooth'})});
+
+const ro=new ResizeObserver(()=>{size();place(true)});ro.observe(document.body);
+place(true);
+}
+</script>
+</body>
+</html>
