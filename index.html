@@ -191,6 +191,8 @@ h2.ph span:nth-child(2){padding-left:calc(54*var(--u))}
 .cap{color:#777}
 #bigast{width:calc(77*var(--u));height:calc(77*var(--u));transition:transform .2s linear;cursor:pointer}
 #bigast:hover{color:var(--blue)}
+#bigast use{transform-box:fill-box;transform-origin:center;animation:spin 16s linear infinite}
+#bigast:hover use{animation-duration:4s}
 .rocket{position:fixed;z-index:80;pointer-events:none;color:#000;will-change:transform}
 .trail{position:fixed;z-index:79;pointer-events:none;width:14px;height:14px;color:var(--blue);animation:trl .9s ease-out forwards}
 @keyframes trl{to{opacity:0;transform:translate(-50%,-50%) scale(.2) rotate(200deg)}}
