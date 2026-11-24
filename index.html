@@ -771,12 +771,12 @@ const FOC=['Sound Stimulation','Brain Activity','Neural Responses','Sensory Proc
 $('#params').innerHTML=PAR.map(p=>`<a href="#graph">--&gt; ${p}</a>`).join('');
 $('#focus').innerHTML=FOC.map((p,i)=>`<a href="#graph">0${i+1}. ${p}</a>`).join('');
 const N=[
- {id:'lab',n:'[KIRARA: LAB]',c:'#000',x:.407,y:.342,no:'000',v:[50,50,50,50,50,50,100],t:'The central index of the archive. Every specimen below was recorded while listening to KIRARA\'s music and is connected back to this node.'},
+ {id:'lab',n:'[KIRARA: LAB]',rt:'UNREQUITED DEVOTION',c:'#000',x:.407,y:.342,no:'005',v:[50,50,50,50,50,50,100],t:'The central index of the archive. Every specimen below was recorded while listening to KIRARA\'s music and is connected back to this node.'},
  {id:'lost',n:'EMOTIONAL LOSTNESS',c:'var(--cyan)',x:.195,y:.054,no:'001',v:[42,28,71,63,55,38,24],t:'A drifting state with no clear direction. Responses repeat without settling, and the listener loses the boundary between their own feeling and the sound.'},
  {id:'pride',n:'OVERHEATED PRIDE',c:'var(--red)',x:.649,y:.10,no:'002',v:[91,64,40,58,33,72,47],t:'High intensity with a narrow focus. Pride rises past its usual limit and starts to distort how the rest of the sound is perceived.'},
- {id:'over',n:'OVERLOAD',c:'var(--lime)',x:.045,y:.262,no:'003',v:[96,88,82,77,61,94,52],t:'Too many signals at once. Density and frequency peak together, and the emotional structure becomes a dense field with no single centre.'},
- {id:'casc',n:'CASCADING RELEASE',c:'var(--green)',x:.76,y:.677,no:'004',v:[68,52,35,22,84,41,79],t:'Tension that releases in steps rather than all at once. Each release triggers the next, forming a chain of connected states.'},
- {id:'glit',n:'GLITCHED EXCITEMENT',c:'var(--mag)',x:.288,y:.779,no:'005',v:[79,93,57,89,92,48,36],t:'Excitement that breaks its own rhythm. Short, irregular spikes interrupt the signal — an anomaly that is not an error.'}];
+ {id:'over',n:'OVERLOAD',c:'var(--lime)',x:.045,y:.262,no:'006',v:[96,88,82,77,61,94,52],t:'Too many signals at once. Density and frequency peak together, and the emotional structure becomes a dense field with no single centre.'},
+ {id:'casc',n:'CASCADING RELEASE',c:'var(--green)',x:.76,y:.677,no:'003',v:[68,52,35,22,84,41,79],t:'Tension that releases in steps rather than all at once. Each release triggers the next, forming a chain of connected states.'},
+ {id:'glit',n:'GLITCHED EXCITEMENT',c:'var(--mag)',x:.288,y:.779,no:'004',v:[79,93,57,89,92,48,36],t:'Excitement that breaks its own rhythm. Short, irregular spikes interrupt the signal — an anomaly that is not an error.'}];
 /* ---- archive: folders open on hover, reports fan out, click a report for the 3D viewer ---- */
 const HEX={lab:'#2a12c8',lost:'#00b8b4',pride:'#ff2b55',over:'#9bbf00',casc:'#3fbf00',glit:'#ff2fd0'};
 const WORDS={lab:['SOUND','PERCEPTION','EMOTION','STRUCTURE','TRANSLATION'],lost:['EMPTINESS','OSCILLATE','DRIFTING','RESONANCE','DISPERSE'],pride:['ELEVATION','FRICTION','OVERHEAT','FIXATION','RUPTURE'],over:['SATURATION','COLLISION','NOISE FLOOR','DENSITY','OVERFLOW'],casc:['TENSION','THRESHOLD','CHAIN','RELEASE','AFTERGLOW'],glit:['SPIKE','STUTTER','SKIP','FLICKER','ANOMALY']};
@@ -821,8 +821,12 @@ function report(id,pg){const key=id+pg;if(RC[key])return RC[key];
  }
  g.font=F(11);g.fillStyle='#888';g.fillText('KIRARA : LAB — sample layout, replace with the final report artwork',40,RH-22);
  return RC[key]=c}
+/* real report artwork: reports/<n>.jpg and reports/<n>-2.jpg, small copies in reports/thumb/ */
+const REP={lost:'1',pride:'2',casc:'3',glit:'4',lab:'5',over:'6'},RL={};
+const repName=(id,k)=>REP[id]+(k?'-2':'')+'.jpg';
+function loadRep(id,k){const key=id+k;return RL[key]||(RL[key]=new Promise(res=>{const im=new Image();im.decoding='async';im.onload=()=>res(im);im.onerror=()=>res(report(id,k));im.src='reports/'+repName(id,k)}))}
 function thumbs(id){const el=nodes[id];if(el.dataset.th)return;el.dataset.th=1;
- el.querySelectorAll('.thumb img').forEach((im,k)=>{const s=document.createElement('canvas');s.width=360;s.height=254;s.getContext('2d').drawImage(report(id,k),0,0,360,254);im.src=s.toDataURL('image/jpeg',.82)})}
+ el.querySelectorAll('.thumb img').forEach((im,k)=>{im.onerror=()=>{const s=document.createElement('canvas');s.width=360;s.height=254;s.getContext('2d').drawImage(report(id,k),0,0,360,254);im.src=s.toDataURL('image/jpeg',.82)};im.src='reports/thumb/'+repName(id,k);loadRep(id,k)})}
 const uk=()=>mob()?.8:innerWidth/1422;
 function openF(id){thumbs(id);const el=nodes[id],fd=el.querySelector('.fd'),u=uk();
  el.querySelector('.rl').innerHTML=OFF[id].map(([x,y])=>`<line x1="0" y1="0" x2="${x*u}" y2="${y*u}" stroke="${HEX[id]}" stroke-width="1.2" pathLength="1"/>`).join('');
@@ -896,10 +900,11 @@ const camP=()=>M4.per(FOV,innerWidth/innerHeight,.1,100);
 function worldAt(el){const r=el.getBoundingClientRect(),x=(r.left+r.width/2)/innerWidth*2-1,y=-((r.top+r.height/2)/innerHeight)*2+1,t=Math.tan(FOV/2);return[x*t*innerWidth/innerHeight*RV.cz,y*t*RV.cz,0]}
 function hitPaper(cx,cy){const P=M4.mul(camP(),M4.mul(M4.tr(0,0,-RV.cz),RV.M)),pts=[[-1,-1],[1,-1],[1,1],[-1,1]].map(([a,b])=>{const x=a*PW/2,y=b*PHH/2,w=P[3]*x+P[7]*y+P[15];return[((P[0]*x+P[4]*y+P[12])/w+1)/2*innerWidth,(1-(P[1]*x+P[5]*y+P[13])/w)/2*innerHeight]});
  let inside=false;for(let i=0,j=3;i<4;j=i++){const[xi,yi]=pts[i],[xj,yj]=pts[j];if((yi>cy)!=(yj>cy)&&cx<(xj-xi)*(cy-yi)/(yj-yi)+xi)inside=!inside}return inside}
-function openViewer(id,pg,fromEl){Object.keys(nodes).forEach(closeF);
- const n=N.find(x=>x.id==id),rv=$('#rv');$('#rvt').textContent=`REPORT NO. ${n.no} — ${n.n.replace(/[\[\]]/g,'')} / PAGE 0${pg+1}`;
- if(!initViewer()){$('#rvimg').src=report(id,pg).toDataURL('image/jpeg',.9);rv.classList.add('on','flat');document.body.classList.add('locked');RV.on=true;return}
- const gl=RV.gl,pot=document.createElement('canvas');pot.width=2048;pot.height=1024;pot.getContext('2d').drawImage(report(id,pg),0,0,2048,1024);
+async function openViewer(id,pg,fromEl){if(RV.on)return;Object.keys(nodes).forEach(closeF);
+ const n=N.find(x=>x.id==id),rv=$('#rv');$('#rvt').textContent=`REPORT NO. ${n.no} — ${n.rt||n.n.replace(/[\[\]]/g,'')} / PAGE 0${pg+1}`;
+ const src=await loadRep(id,pg);
+ if(!initViewer()){$('#rvimg').src=src.src||src.toDataURL('image/jpeg',.9);rv.classList.add('on','flat');document.body.classList.add('locked');RV.on=true;return}
+ const gl=RV.gl,pot=document.createElement('canvas');pot.width=2048;pot.height=1024;pot.getContext('2d').drawImage(src,0,0,2048,1024);
  gl.bindTexture(gl.TEXTURE_2D,RV.tex);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,pot);gl.generateMipmap(gl.TEXTURE_2D);
  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
