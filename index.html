@@ -152,7 +152,7 @@ h2.ph span:nth-child(2){padding-left:calc(54*var(--u))}
 .fd.gulp{animation:gulp .5s cubic-bezier(.3,1.6,.5,1)}
 @keyframes gulp{40%{transform:scale(1.12,.9)}}
 .rp{position:absolute;left:50%;top:50%;width:0;height:0}
-.rl{position:absolute;left:0;top:0;width:1px;height:1px;overflow:visible;pointer-events:none}
+.rl{position:absolute;left:0;top:0;width:1px;height:1px;overflow:visible;pointer-events:none;z-index:-1}
 .rl line{stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset .45s .1s}
 .fd.open .rl line{stroke-dashoffset:0}
 .thumb{position:absolute;left:calc(var(--ox)*var(--u) - 66.5*var(--u));top:calc(var(--oy)*var(--u) - 47*var(--u));width:calc(133*var(--u));height:calc(94*var(--u));min-width:0;background:#fff;border:1px solid #9a9a9a;padding:0;opacity:0;pointer-events:none;transform:translate(calc(var(--ox)*var(--u)*-1),calc(var(--oy)*var(--u)*-1)) scale(.15) rotate(-8deg);transition:transform .5s cubic-bezier(.3,1.4,.5,1) var(--d),opacity .25s var(--d);cursor:zoom-in}
@@ -189,7 +189,13 @@ h2.ph span:nth-child(2){padding-left:calc(54*var(--u))}
 .preview{background:var(--gray);overflow:hidden;cursor:pointer;display:block;border:0}
 .preview canvas{width:100%;height:100%;display:block}
 .cap{color:#777}
-#bigast{width:calc(77*var(--u));height:calc(77*var(--u));transition:transform .2s linear}
+#bigast{width:calc(77*var(--u));height:calc(77*var(--u));transition:transform .2s linear;cursor:pointer}
+#bigast:hover{color:var(--blue)}
+.rocket{position:fixed;z-index:80;pointer-events:none;color:#000;will-change:transform}
+.trail{position:fixed;z-index:79;pointer-events:none;width:14px;height:14px;color:var(--blue);animation:trl .9s ease-out forwards}
+@keyframes trl{to{opacity:0;transform:translate(-50%,-50%) scale(.2) rotate(200deg)}}
+.arrive{position:fixed;left:50%;top:50%;z-index:80;pointer-events:none;width:40px;height:40px;border-radius:50%;border:1.5px solid var(--cyan);transform:translate(-50%,-50%);animation:arr .8s ease-out forwards}
+@keyframes arr{to{width:120vmax;height:120vmax;opacity:0;border-width:1px}}
 
 #intro{position:fixed;inset:0;z-index:100;background:#fff;overflow:hidden;cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;transition:opacity .8s .35s,visibility .8s .35s}
 #intro.out{opacity:0;visibility:hidden;pointer-events:none}
@@ -414,7 +420,7 @@ body.locked{overflow:hidden}
   </div>
   <button class="preview abs box" id="preview" style="--x:953;--y:37;--w:454;--h:277" aria-label="Open report 001 — Emotional Lostness"><canvas id="pv"></canvas></button>
   <div class="cap abs" style="--x:953;--y:322;width:calc(454*var(--u))">Click to access the Report Archive and view the full research document &nbsp; (REPORT NO. 001 — EMOTIONAL LOSTNESS)</div>
-  <svg id="bigast" class="abs" style="--x:673;--y:650"><use href="#ast2"/></svg>
+  <svg id="bigast" class="abs" style="--x:673;--y:650" role="button" tabindex="0" aria-label="Back to top"><use href="#ast2"/></svg>
   <div class="fbot">
     <div class="abs" style="--x:15;--y:711">©2026 KIRARA: LAB.</div>
     <div class="abs" style="--x:1247;--y:711">ALL RIGHTS RESERVED.</div>
@@ -845,7 +851,7 @@ function thumbs(id){const el=nodes[id];if(el.dataset.th)return;el.dataset.th=1;
  el.querySelectorAll('.thumb img').forEach((im,k)=>{im.onerror=()=>{const s=document.createElement('canvas');s.width=360;s.height=254;s.getContext('2d').drawImage(report(id,k),0,0,360,254);im.src=s.toDataURL('image/jpeg',.82)};im.src='reports/thumb/'+repName(id,k);loadRep(id,k)})}
 const uk=()=>mob()?.8:innerWidth/1422;
 function openF(id){thumbs(id);const el=nodes[id],fd=el.querySelector('.fd'),u=uk();
- el.querySelector('.rl').innerHTML=OFF[id].map(([x,y])=>`<line x1="0" y1="0" x2="${x*u}" y2="${y*u}" stroke="${HEX[id]}" stroke-width="1.2" pathLength="1"/>`).join('');
+ el.querySelector('.rl').innerHTML=OFF[id].map(([x,y])=>`<line x1="0" y1="0" x2="${x*u}" y2="${y*u}" style="stroke:${N.find(x=>x.id==id).c}" stroke-width="1.3" pathLength="1"/>`).join('');
  Object.keys(nodes).forEach(k=>{if(k!=id)closeF(k)});fd.classList.add('open');el.classList.add('up')}
 function closeF(id){const el=nodes[id];el.querySelector('.fd').classList.remove('open');el.classList.remove('up')}
 const ctm={};
@@ -1017,7 +1023,27 @@ function onScroll(){const y=scrollY;
  if(!mob()&&!RM){const vt=vis.offsetTop;par.forEach(el=>{el.style.transform=`translateY(${(y-vt+innerHeight*.4)*-.12*(+el.dataset.p-1)}px)`})}
  big.style.transform=`rotate(${y*.15}deg)`;}
 addEventListener('scroll',onScroll,{passive:true});onScroll();
-$('#totop').addEventListener('click',e=>{e.preventDefault();scrollTo({top:0,behavior:RM?'auto':'smooth'})});
+/* back to top: the asterisk winds up, launches and drags the page up with it, leaving a trail of small asterisks */
+let flying=false;
+function launch(){if(flying)return;if(RM){scrollTo(0,0);return}flying=true;
+ const r=big.getBoundingClientRect(),rk=big.cloneNode(true);rk.removeAttribute('id');rk.removeAttribute('class');rk.removeAttribute('style');rk.classList.add('rocket');
+ Object.assign(rk.style,{left:r.left+'px',top:r.top+'px',width:r.width+'px',height:r.height+'px'});document.body.appendChild(rk);big.style.visibility='hidden';
+ const y0=scrollY,t0=performance.now(),W=380,F=Math.min(1700,700+y0*.12),tx=innerWidth/2-r.left-r.width/2,ty=innerHeight*.42-r.top-r.height/2;let lastT=0;
+ const eq=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;
+ (function f(t){const e=t-t0;
+  if(e<W){const k=e/W;rk.style.transform=`translate(0,${Math.sin(k*Math.PI)*10}px) rotate(${-120*k}deg) scale(${1+.25*k},${1-.3*Math.sin(k*Math.PI)})`;requestAnimationFrame(f);return}
+  const k=Math.min(1,(e-W)/F),q=eq(k);
+  scrollTo(0,y0*(1-q));
+  const fx=tx*Math.min(1,k*2.2),fy=ty*Math.min(1,k*2.2)+Math.sin(k*Math.PI)*-40,rot=-120+k*1440,sc=1.25-.55*Math.sin(k*Math.PI);
+  rk.style.transform=`translate(${fx}px,${fy}px) rotate(${rot}deg) scale(${sc})`;
+  if(t-lastT>45&&k<.92){lastT=t;const b=rk.getBoundingClientRect(),d=document.createElementNS('http://www.w3.org/2000/svg','svg');d.setAttribute('class','trail');d.innerHTML='<use href="#ast2"/>';d.style.left=(b.left+b.width/2+(Math.random()-.5)*20)+'px';d.style.top=(b.top+b.height*.8)+'px';d.style.transform='translate(-50%,-50%)';document.body.appendChild(d);setTimeout(()=>d.remove(),950)}
+  if(k<1){requestAnimationFrame(f);return}
+  rk.animate([{opacity:1,transform:rk.style.transform},{opacity:0,transform:`translate(${fx}px,${fy}px) rotate(${rot+90}deg) scale(4)`}],{duration:450,easing:'ease-out'}).onfinish=()=>rk.remove();
+  const ring=document.createElement('i');ring.className='arrive';document.body.appendChild(ring);setTimeout(()=>ring.remove(),850);
+  if(typeof pulse!=='undefined'){pulse=1}
+  setTimeout(()=>{big.style.visibility='';flying=false},500)})(t0)}
+big.addEventListener('click',launch);big.addEventListener('keydown',e=>{if(e.key=='Enter'||e.key==' '){e.preventDefault();launch()}});
+$('#totop').addEventListener('click',e=>{e.preventDefault();launch()});
 
 const ro=new ResizeObserver(()=>{size();place(true)});ro.observe(document.body);
 place(true);
