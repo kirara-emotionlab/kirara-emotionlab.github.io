@@ -49,7 +49,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .emo .t{background:#000;color:#fff;padding:0 .15em}
 .emo .tr{display:flex;opacity:0;transition:opacity .3s}
 .emo .tr svg{width:calc(20*var(--u));height:calc(20*var(--u));color:var(--cyan)}
-.emo .tr svg:last-child{width:calc(12*var(--u))}
+.emo .tr svg:last-child{width:calc(12*var(--u))}.emo .tr .ln{width:calc(7*var(--u));height:1.5px;background:var(--cyan);align-self:center}
 .emo button[aria-pressed=true] .t{background:var(--cyan);color:#000}
 .emo button[aria-pressed=true] .ic{color:var(--cyan);transform:rotate(90deg)}
 .emo button[aria-pressed=true] .tr{opacity:1}
@@ -61,12 +61,24 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .tree a::before{content:"";position:absolute;right:100%;top:50%;width:calc(47*var(--u));border-top:1px solid #000;margin-right:calc(11*var(--u))}
 .tree a:hover{background:var(--blue);color:#fff}
 .tree a span{text-decoration:underline;text-underline-offset:.18em}
-.welcome b{font-weight:600}
 .scroll-btn{border:1px solid #000;padding:0 .4em;background:#fff;white-space:nowrap}
 .scroll-btn:hover{background:#000;color:#fff}
 .scroll-btn i{display:inline-block;font-style:normal;animation:bob 1.4s ease-in-out infinite}
 @keyframes bob{50%{transform:translateY(.25em)}}
-#mode{font-size:calc(12*var(--u));color:var(--blue)}.lctl{text-align:right;pointer-events:none}.lbtn{display:flex;justify-content:flex-end;align-items:center;gap:calc(8*var(--u));margin-top:calc(6*var(--u));pointer-events:auto}.lbtn button{border:1px solid #000;background:#fff;width:calc(28*var(--u));height:calc(22*var(--u));min-width:26px;min-height:22px}.lbtn button:hover{background:#000;color:#fff}.lbtn span{font-size:calc(11*var(--u));letter-spacing:.1em}.np{display:flex;justify-content:flex-end;align-items:center;gap:calc(8*var(--u));pointer-events:auto;font-size:calc(12*var(--u))}.np[hidden],.npbar[hidden]{display:none}.np button{background:#000;color:var(--cyan);width:calc(26*var(--u));height:calc(22*var(--u));min-width:26px;min-height:22px;font-size:10px}.np button:hover{background:var(--cyan);color:#000}.np span{background:var(--cyan);padding:0 .3em;white-space:nowrap}.npbar{height:2px;background:#ddd;margin:calc(6*var(--u)) 0 calc(8*var(--u)) auto;width:100%}.npbar b{display:block;height:100%;width:0;background:#000}
+.hctl{font-size:calc(14*var(--u))}
+.np{display:flex;align-items:stretch;height:calc(19*var(--u));min-height:19px;width:max-content;border:1px solid #000}
+.np[hidden]{display:flex;visibility:hidden}
+.np button{background:#000;color:var(--cyan);width:calc(20*var(--u));min-width:20px;font-size:9px}
+.np button:hover{background:var(--cyan);color:#000}
+.np span{background:var(--cyan);color:#000;padding:0 .35em;display:flex;align-items:center;white-space:nowrap}
+.npbar{height:calc(5*var(--u));min-height:4px;border:1px solid #000;margin-top:calc(14*var(--u));background:#fff}
+.npbar[hidden]{display:block;visibility:hidden}
+.npbar b{display:block;height:100%;width:0;background:#000}
+#mode{margin-top:calc(9*var(--u));color:var(--blue);font-size:calc(12*var(--u))}
+.lbtn{display:flex;align-items:stretch;margin-top:calc(16*var(--u));width:max-content;border:1px solid #000;height:calc(19*var(--u));min-height:19px}
+.lbtn button{background:#000;color:var(--cyan);width:calc(18*var(--u));min-width:22px}
+.lbtn button:hover{background:var(--cyan);color:#000}
+.lbtn span{padding:0 .4em;display:flex;align-items:center;background:#fff;white-space:nowrap}
 
 /* vision */
 #vision{height:calc(800*var(--u))}
@@ -180,8 +192,7 @@ body.locked{overflow:hidden}
   #hbrand{order:1}
   #emo{order:2;display:flex;flex-wrap:wrap;gap:4px 14px}
   #lens{position:relative;inset:auto;order:3;flex:none;width:calc(100% + 32px);margin:-6px -16px;height:min(100vw,56svh,460px)}
-  #hero .lctl{order:4}
-  #hero .welcome{order:5;margin-top:6px}
+  #hero .hctl{order:4;width:min(260px,100%)!important}
   #hero .tree{order:6}
   #hero .scroll-btn{order:7;align-self:flex-end}
   .abs{width:auto!important;height:auto!important}
@@ -241,13 +252,13 @@ body.locked{overflow:hidden}
     <a href="#philosophy" style="top:calc(319*var(--u))"><span>EMOTION LAB</span></a>
   </div>
 
-  <div class="welcome abs" style="--x:15;--y:556;width:calc(225*var(--u))">
-    <b>WELCOME TO KIRARA LAB.</b><br>
-    What are your emotions made of? We observe, collect, and explore the hidden structures of human emotions.<br>
-    Discover the patterns within your feelings. Begin your emotional exploration.
-  </div>
 
-  <div class="abs lctl" style="--x:1150;--y:590;width:calc(257*var(--u))"><div class="np" id="np" hidden><button id="pp" aria-label="Pause">❚❚</button><span id="npt"></span></div><div class="npbar" id="npbw" hidden><b id="npb"></b></div><div id="mode" aria-live="polite"></div><div class="lbtn"><button id="prev" aria-label="Previous logo">←</button><span>DRAG</span><button id="next" aria-label="Next logo">→</button></div></div>
+  <div class="abs hctl" style="--x:15;--y:626;width:calc(216*var(--u))">
+    <div class="np" id="np" hidden><button id="pp" aria-label="Pause">❚❚</button><span id="npt"></span></div>
+    <div class="npbar" id="npbw" hidden><b id="npb"></b></div>
+    <div id="mode" aria-live="polite"></div>
+    <div class="lbtn"><button id="prev" aria-label="Previous logo">←</button><span>Drag To Change</span><button id="next" aria-label="Next logo">→</button></div>
+  </div>
   <a class="scroll-btn abs" href="#vision" style="--x:1231;--y:701"><i>↓</i> Scroll To Observe <i>↓</i></a>
 </section>
 
@@ -389,7 +400,7 @@ document.querySelectorAll('#t1 .c1').forEach(e=>e.style.color='var(--blue)');
 const NAMES=['HALFTONE','OUTLINE','SOLID','CONTOUR','HATCH','PIXEL','STRUCTURE','SCANLINE'];
 const NV=NAMES.length;
 const EMO=[{n:'Wish',v:0,k:'wish',f:'audio/wish.mp3'},{n:'Stargaze',v:1,k:'star',f:'audio/stargaze.mp3'},{n:'ct16031',v:5,k:'glitch',f:'audio/ct16031.mp3'},{n:'BLIZZARD',v:3,k:'snow',f:'audio/blizzard.mp3'},{n:'Rain Dance',v:7,k:'rain',f:'audio/raindance.mp3'}];
-$('#emo').innerHTML=EMO.map((e,i)=>`<li><button data-i="${i}" data-v="${e.v}" aria-pressed="false"><svg class="ic"><use href="#ast"/></svg><span class="t">${e.n}</span><span class="tr"><svg><use href="#ast"/></svg><svg><use href="#ast"/></svg></span></button></li>`).join('');
+$('#emo').innerHTML=EMO.map((e,i)=>`<li><button data-i="${i}" data-v="${e.v}" aria-pressed="false"><svg class="ic"><use href="#ast"/></svg><span class="t">${e.n}</span><span class="tr"><svg><use href="#ast"/></svg><i class="ln"></i><svg><use href="#ast"/></svg></span></button></li>`).join('');
 
 /* logo variants, drawn once into a 4x2 atlas (1024px cells) */
 const CELL=1024,AL=500,AT=74;
@@ -571,7 +582,7 @@ function render(){
   gl.drawArrays(gl.TRIANGLES,0,3);}
  else{const c=((Math.round(cp)%NV)+NV)%NV,s=2*P0;g2.setTransform(dpr,0,0,dpr,0,0);g2.clearRect(0,0,W,Hh);g2.drawImage(atlas,(c%4)*CELL,Math.floor(c/4)*CELL,CELL,CELL,cx0-s/2,cy0-s/2,s,s)}}
 const label=()=>{const c=((Math.round(cp)%NV)+NV)%NV;if(c===cur)return;cur=c;
- $('#mode').textContent=`LOGO ${String(c+1).padStart(2,'0')} / ${String(NV).padStart(2,'0')} — ${NAMES[c]}`;
+ $('#mode').textContent=`Logo Style #${String(c+1).padStart(2,'0')} / (${NAMES[c]})`;
  if(sel<0)document.querySelectorAll('#emo button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.v===c))};
 const go=d=>{tgt=Math.round(tgt)+d;idle=performance.now()};
 const goTo=v=>{let d=((v-cur)%NV+NV)%NV;if(d>NV/2)d-=NV;tgt=Math.round(cp)+d;idle=performance.now()};
@@ -583,7 +594,7 @@ function trk(i){if(!tracks[i]){const a=new Audio(EMO[i].f);a.loop=false;a.addEve
 function fadeG(g,to,ms){const n=actx.currentTime;g.gain.cancelScheduledValues(n);g.gain.setValueAtTime(g.gain.value,n);g.gain.linearRampToValueAtTime(to,n+ms/1000)}
 function ui(){document.querySelectorAll('#emo button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.i===sel));
  $('#np').hidden=$('#npbw').hidden=sel<0;if(sel<0)return;$('#pp').textContent=playing?'❚❚':'▶';$('#pp').setAttribute('aria-label',playing?'Pause':'Play');
- $('#npt').textContent=(playing?'NOW PLAYING: ':'PAUSED: ')+EMO[sel].n}
+ $('#npt').textContent=(playing?'Now Playing: ':'Paused: ')+EMO[sel].n}
 const XF=3200;
 let ptok=0;
 async function playSong(i,auto){ensureCtx();const tok=++ptok;if(actx.state==='suspended')actx.resume().catch(()=>{});
@@ -591,7 +602,7 @@ async function playSong(i,auto){ensureCtx();const tok=++ptok;if(actx.state==='su
  const ms=auto?XF:350;
  if(sel>=0&&sel!==i&&tracks[sel]){const oi=sel,o=tracks[sel];fadeG(o.g,0,ms);setTimeout(()=>{if(sel!==oi||!playing){o.a.pause();if(auto)o.a.currentTime=0}},ms+60)}
  sel=i;const t=trk(i);t.out=false;if(auto||t.a.ended)t.a.currentTime=0;if(t.a.paused)t.g.gain.value=0;
- try{await t.a.play();if(tok!==ptok)return}catch(e){if(tok!==ptok)return;playing=false;ui();$('#npt').textContent='CLICK ANYWHERE TO PLAY: '+EMO[i].n;return}
+ try{await t.a.play();if(tok!==ptok)return}catch(e){if(tok!==ptok)return;playing=false;ui();$('#npt').textContent='Click To Play: '+EMO[i].n;return}
  fadeG(t.g,1,auto?XF:400);playing=true;goTo(EMO[i].v);ui()}
 function pauseSong(){const t=tracks[sel];if(!t)return;fadeG(t.g,0,250);setTimeout(()=>{if(!playing)t.a.pause()},260);playing=false;ui()}
 $('#emo').addEventListener('click',e=>{const b=e.target.closest('button');if(b)playSong(+b.dataset.i)});
