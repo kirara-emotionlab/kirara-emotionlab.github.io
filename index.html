@@ -1374,9 +1374,9 @@ function launch(){if(flying)return;if(RM){scrollTo(0,0);return}flying=true;
   rk.style.transform=`translate(${fx}px,${fy}px) rotate(${rot}deg) scale(${sc})`;
   if(t-lastT>45&&k<.92){lastT=t;const b=rk.getBoundingClientRect(),d=document.createElementNS('http://www.w3.org/2000/svg','svg');d.setAttribute('class','trail');d.innerHTML='<use href="#ast2"/>';d.style.left=(b.left+b.width/2+(Math.random()-.5)*20)+'px';d.style.top=(b.top+b.height*.8)+'px';d.style.transform='translate(-50%,-50%)';document.body.appendChild(d);setTimeout(()=>d.remove(),950)}
   if(k<1){requestAnimationFrame(f);return}
-  rk.animate([{opacity:1,transform:rk.style.transform},{opacity:0,transform:`translate(${fx}px,${fy}px) rotate(${rot+90}deg) scale(4)`}],{duration:450,easing:'ease-out'}).onfinish=()=>rk.remove();
-  const ring=document.createElement('i');ring.className='arrive';document.body.appendChild(ring);setTimeout(()=>ring.remove(),850);
-  if(typeof pulse!=='undefined'){pulse=1}
+  /* settle: the asterisk sinks into the centre of the main lens and the lens answers with one beat */
+  {const hb=$('#lens').getBoundingClientRect(),b0=r,cx=hb.left+hb.width/2-(b0.left+b0.width/2),cy=hb.top+hb.height/2-(b0.top+b0.height/2);
+   rk.animate([{transform:rk.style.transform,opacity:1},{transform:`translate(${cx}px,${cy}px) rotate(${rot+200}deg) scale(.15)`,opacity:.9,offset:.85},{transform:`translate(${cx}px,${cy}px) rotate(${rot+220}deg) scale(0)`,opacity:0}],{duration:520,easing:'cubic-bezier(.55,0,.25,1)'}).onfinish=()=>{rk.remove();if(typeof pulse!=='undefined')pulse=1}}
   setTimeout(()=>{big.style.visibility='';flying=false},500)})(t0)}
 big.addEventListener('click',launch);big.addEventListener('keydown',e=>{if(e.key=='Enter'||e.key==' '){e.preventDefault();launch()}});
 $('#totop').addEventListener('click',e=>{e.preventDefault();launch()});
