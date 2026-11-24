@@ -182,6 +182,7 @@ h2.ph span:nth-child(2){padding-left:calc(54*var(--u))}
 #rvread{margin-left:10px}
 .rvt,.rvh{z-index:2}
 #loupe{position:fixed;left:0;top:0;width:220px;height:220px;border-radius:50%;pointer-events:none;z-index:95;display:none;transform:translate(-50%,-50%);box-shadow:0 0 0 2px #fff,0 0 0 3px rgba(0,0,0,.25),0 16px 36px rgba(0,0,0,.35)}
+.sigb canvas{position:absolute;inset:0;width:100%;height:100%;display:block}.gboxes .sigb:last-child{cursor:crosshair}
 /* footer */
 #footer{height:calc(735*var(--u))}
 .flinks a{color:var(--blue);text-decoration:none}
@@ -255,7 +256,7 @@ body.locked{overflow:hidden}
   #philosophy{display:flex;flex-direction:column;gap:22px}
   .tags{display:flex;flex-wrap:wrap;gap:10px 16px;order:3}
   .tags .tag{position:static}
-  .gboxes{display:none}
+  .gboxes{display:grid!important;grid-template-columns:1fr 1fr;gap:10px;order:4}.gboxes .sigb{height:150px!important}
   #archive{display:flex;flex-direction:column;gap:22px}
   #graph{height:520px!important;width:100%!important}
   .node{font-size:11px}
@@ -372,8 +373,8 @@ body.locked{overflow:hidden}
   </div>
 
   <div class="gboxes deco">
-    <div class="r abs box" style="--x:807;--y:598;--w:248;--h:183;outline:0"></div>
-    <div class="r abs box" style="--x:1070;--y:598;--w:248;--h:183;outline:0"></div>
+    <div class="r abs box sigb" style="--x:807;--y:598;--w:248;--h:183;outline:0"><canvas id="sigA" aria-label="Baseline: a regular emotional signal"></canvas></div>
+    <div class="r abs box sigb" style="--x:1070;--y:598;--w:248;--h:183;outline:0"><canvas id="sigB" aria-label="Anomaly: hover to see the signal break into connections"></canvas></div>
   </div>
 
   <div class="tags" id="tags"></div>
@@ -773,7 +774,7 @@ const TAGS=[
  [1184,83,'04.2','Non-fixed States','var(--lav)'],[962,247,'01.2','Emotional Perception','var(--lime)'],[326,289,'01.1','Sensory Extraction','var(--lime)'],
  [352,348,'','(Emotional pattern)'],[1208,309,'','(Reconstruct what<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cannot be seen)'],[722,408,'04.1','Structural Transformation','var(--lav)'],
  [1143,408,'03.2','Internal Relationships','var(--paleY)'],[256,486,'06.2','Visual Reconstruction','var(--paleB)'],[1107,538,'','(No fixed emotional boundaries)'],
- [529,586,'02.1','Individual Response','#ff6fd8'],[781,663,'05.2','Signal Variation','#fff'],[962,640,'05.1','Patterns of Connection','#fff'],
+ [529,586,'02.1','Individual Response','#ff6fd8'],[781,663,'05.2','Signal Variation','rgba(255,255,255,.7)'],[962,640,'05.1','Patterns of Connection','rgba(255,255,255,.7)'],
  [466,711,'','(Observe the unexplainable)'],[863,729,'','(Anomaly is not an error)'],[425,734,'03.1','Emotional Irregularity','var(--paleY)'],[1263,684,'02.2','Visual Translation','#ff6fd8']];
 $('#tags').innerHTML=TAGS.map(t=>t[2]?`<div class="tag abs" data-g="${t[2].slice(0,2)}" style="--x:${t[0]};--y:${t[1]}"><b>#${t[2]}</b><em style="background:${t[4]}">${t[3]}</em></div>`:`<div class="tag n abs" style="--x:${t[0]};--y:${t[1]}"><em>${t[3]}</em></div>`).join('');
 const ph=$('#philosophy');
@@ -801,6 +802,68 @@ const N=[
  {id:'over',n:'OVERLOAD',c:'var(--lime)',x:.045,y:.262,no:'006',v:[96,88,82,77,61,94,52],t:'Too many signals at once. Density and frequency peak together, and the emotional structure becomes a dense field with no single centre.'},
  {id:'casc',n:'CASCADING RELEASE',c:'var(--green)',x:.76,y:.677,no:'003',v:[68,52,35,22,84,41,79],t:'Tension that releases in steps rather than all at once. Each release triggers the next, forming a chain of connected states.'},
  {id:'glit',n:'GLITCHED EXCITEMENT',c:'var(--mag)',x:.288,y:.779,no:'004',v:[79,93,57,89,92,48,36],t:'Excitement that breaks its own rhythm. Short, irregular spikes interrupt the signal — an anomaly that is not an error.'}];
+/* ---- philosophy: two typographic specimen panels
+   BASELINE — the words SIGNAL VARIATION flow along three calm waves through a dot grid
+   ANOMALY  — the letters of ANOMALY IS NOT AN ERROR drift as a connected constellation, glitch and leave pixel trails;
+              hover pulls them into a dial around the cursor (a pattern of connection) ---- */
+{
+ const S=[$('#sigA'),$('#sigB')],cs=S.map(c=>c.getContext('2d'));let vis=false,hov=0,hovT=0,hx=.5,hy=.5,sx=.5,sy=.5;
+ new IntersectionObserver(es=>{vis=es[0].isIntersecting}).observe(S[0]);
+ const box=S[1].parentElement;
+ box.addEventListener('pointermove',e=>{const r=S[1].getBoundingClientRect();hx=(e.clientX-r.left)/r.width;hy=(e.clientY-r.top)/r.height;hovT=1});
+ box.addEventListener('pointerleave',()=>{hovT=0});
+ box.addEventListener('pointerdown',e=>{const r=S[1].getBoundingClientRect();hx=(e.clientX-r.left)/r.width;hy=(e.clientY-r.top)/r.height;hovT=hovT?0:1});
+ const hs=(a,b)=>{const v=Math.sin(a*127.1+b*311.7)*43758.5;return v-Math.floor(v)};
+ const BLUE='#2a12c8',F='"IBM Plex Mono",ui-monospace,monospace';
+ const TXT='SIGNALVARIATION';
+ const WORD='ANOMALYISNOTANERROR'.split('');
+ const L=WORD.map((ch,i)=>({ch,x:.08+hs(i,1)*.84,y:.12+hs(i,2)*.76,vx:0,vy:0,ph:hs(i,3)*7,tr:[]}));
+ let lastG=0;
+ function base(g,W,H,T,au){
+  const cols=26,cw=W/cols,rows=Math.round(H/cw),ch=H/rows;
+  g.font=`500 ${Math.round(cw*.78)}px ${F}`;g.textAlign='center';g.textBaseline='middle';
+  for(let j=0;j<rows;j++)for(let i=0;i<cols;i++){
+   const x=(i+.5)*cw,y=(j+.5)*ch;let hit=-1,dist=9;
+   for(let k=0;k<3;k++){const by=H*(.24+.26*k)+Math.sin(x*.035+T*(.9+k*.15)+k*1.7)*H*(.09+au*.06);const dd=Math.abs(y-by)/ch;if(dd<dist){dist=dd;hit=k}}
+   if(dist<.62){const idx=((i+j*3-Math.floor(T*4)+hit*5)%TXT.length+TXT.length)%TXT.length;g.fillStyle=hit==1?BLUE:'#111';g.globalAlpha=1-dist*.6;g.fillText(TXT[idx],x,y+.5);g.globalAlpha=1}
+   else{g.fillStyle='rgba(0,0,0,.18)';g.fillRect(x-.6,y-.6,1.2,1.2)}}
+ }
+ function anom(g,W,H,T,au,pl){
+  const cxp=sx*W,cyp=sy*H,R=Math.min(W,H)*.36,gt=Math.floor(T*5);
+  /* physics */
+  L.forEach((p,i)=>{
+   if(hov>.02){const a=i/L.length*Math.PI*2-Math.PI/2+T*.25,tx=(cxp+Math.cos(a)*R)/W,ty=(cyp+Math.sin(a)*R*.9)/H;p.vx+=(tx-p.x)*.02*hov;p.vy+=(ty-p.y)*.02*hov}
+   p.vx+=Math.sin(T*.7+p.ph)*.00012+(.5-p.x)*.00008;p.vy+=Math.cos(T*.6+p.ph*1.3)*.00012+(.5-p.y)*.00008;
+   p.vx*=.9;p.vy*=.9;p.x+=p.vx;p.y+=p.vy;
+   if(gt!==lastG&&hs(i,gt)>.93-pl*.2&&hov<.5){p.tr.push([p.x,p.y,1]);p.x=Math.min(.94,Math.max(.06,p.x+(hs(i,gt+1)-.5)*.18));p.y=Math.min(.92,Math.max(.08,p.y+(hs(i,gt+2)-.5)*.14))}
+   p.tr.forEach(t=>t[2]-=.025);p.tr=p.tr.filter(t=>t[2]>0)});
+  lastG=gt;
+  /* dial ring */
+  if(hov>.02){g.strokeStyle=`rgba(42,18,200,${.35*hov})`;g.lineWidth=1;g.beginPath();g.arc(cxp,cyp,R,0,7);g.stroke();
+   g.beginPath();for(let k=0;k<60;k++){const a=k/60*Math.PI*2,l=k%5?3:7;g.moveTo(cxp+Math.cos(a)*R,cyp+Math.sin(a)*R);g.lineTo(cxp+Math.cos(a)*(R-l),cyp+Math.sin(a)*(R-l))}g.stroke();
+   g.strokeStyle='#ff2b55';g.lineWidth=1.4;g.beginPath();g.moveTo(cxp,cyp);const ha=T*1.6;g.lineTo(cxp+Math.cos(ha)*R*.8,cyp+Math.sin(ha)*R*.8);g.stroke();
+   g.fillStyle='#ff2b55';g.beginPath();g.arc(cxp,cyp,2.5,0,7);g.fill()}
+  /* constellation lines: sequential path + a few cross links */
+  g.strokeStyle=BLUE;g.lineWidth=.8;g.globalAlpha=.75;g.beginPath();
+  L.forEach((p,i)=>{const x=p.x*W,y=p.y*H;i?g.lineTo(x,y):g.moveTo(x,y)});g.stroke();
+  g.globalAlpha=.35;g.beginPath();for(let i=0;i<L.length;i+=3){const a=L[i],b=L[(i*7+4)%L.length];g.moveTo(a.x*W,a.y*H);g.lineTo(b.x*W,b.y*H)}g.stroke();
+  if(hov>.02){g.globalAlpha=.25*hov;g.beginPath();L.forEach(p=>{g.moveTo(cxp,cyp);g.lineTo(p.x*W,p.y*H)});g.stroke()}
+  g.globalAlpha=1;
+  /* pixel trails */
+  L.forEach(p=>p.tr.forEach(([x,y,a],k)=>{const n=5;for(let q=0;q<n;q++){g.fillStyle=q%2?'#00e5e0':BLUE;g.globalAlpha=a*(1-q/n);g.fillRect(x*W+q*3*(hs(k,q)-.5)*3,y*H+q*3.2,3,3)}}));g.globalAlpha=1;
+  /* letters */
+  const fs=Math.round(Math.min(W,H)*.1*(1+au*.15+pl*.12));g.font=`400 ${fs}px ${F}`;g.textAlign='center';g.textBaseline='middle';
+  L.forEach((p,i)=>{const x=p.x*W,y=p.y*H,gl=hs(i,gt)>.95;g.fillStyle='#e6e6e6';g.fillRect(x-fs*.32,y-fs*.48,fs*.64,fs*.96);
+   g.fillStyle=gl?'#ff2fd0':BLUE;g.fillText(p.ch,x+(gl?(hs(i,gt+3)-.5)*4:0),y+1)});
+ }
+ function draw(t){
+  const T=t/1000,au=(typeof playing!=='undefined'&&playing)?Math.min(1,env*1.4):0,pl=typeof pulse!=='undefined'?pulse:0;
+  hov+=(hovT-hov)*.07;sx+=(hx-sx)*.1;sy+=(hy-sy)*.1;
+  S.forEach((c,ix)=>{const g=cs[ix],d=Math.min(devicePixelRatio||1,2),W=c.clientWidth,H=c.clientHeight;if(!W)return;
+   if(c.width!=Math.round(W*d)){c.width=Math.round(W*d);c.height=Math.round(H*d)}g.setTransform(d,0,0,d,0,0);g.clearRect(0,0,W,H);
+   ix?anom(g,W,H,T,au,pl):base(g,W,H,T,au)})}
+ (function loop(t){if(vis||RM)draw(RM?0:t);if(!RM)requestAnimationFrame(loop)})(0);
+}
 /* ---- archive: folders open on hover, reports fan out, click a report for the 3D viewer ---- */
 const HEX={lab:'#2a12c8',lost:'#00b8b4',pride:'#ff2b55',over:'#9bbf00',casc:'#3fbf00',glit:'#ff2fd0'};
 const WORDS={lab:['SOUND','PERCEPTION','EMOTION','STRUCTURE','TRANSLATION'],lost:['EMPTINESS','OSCILLATE','DRIFTING','RESONANCE','DISPERSE'],pride:['ELEVATION','FRICTION','OVERHEAT','FIXATION','RUPTURE'],over:['SATURATION','COLLISION','NOISE FLOOR','DENSITY','OVERFLOW'],casc:['TENSION','THRESHOLD','CHAIN','RELEASE','AFTERGLOW'],glit:['SPIKE','STUTTER','SKIP','FLICKER','ANOMALY']};
