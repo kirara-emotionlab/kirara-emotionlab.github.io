@@ -49,7 +49,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .emo .t{background:#000;color:#fff;padding:0 .15em}
 .emo .tr{display:flex;opacity:0;transition:opacity .3s}
 .emo .tr svg{width:calc(20*var(--u));height:calc(20*var(--u));color:var(--cyan)}
-.emo .tr svg:last-child{width:calc(12*var(--u))}.emo .tr .ln{width:calc(7*var(--u));height:1.5px;background:var(--cyan);align-self:center}
+.emo .tr{align-items:center}.emo .tr svg:nth-child(1){width:calc(21*var(--u));height:calc(21*var(--u))}.emo .tr svg:nth-child(2){width:calc(14*var(--u));height:calc(14*var(--u));margin-left:calc(-1*var(--u))}.emo .tr svg:nth-child(3){width:calc(9*var(--u));height:calc(9*var(--u));margin-left:calc(-1*var(--u))}
 .emo button[aria-pressed=true] .t{background:var(--cyan);color:#000}
 .emo button[aria-pressed=true] .ic{color:var(--cyan);transform:rotate(90deg)}
 .emo button[aria-pressed=true] .tr{opacity:1}
@@ -400,7 +400,7 @@ document.querySelectorAll('#t1 .c1').forEach(e=>e.style.color='var(--blue)');
 const NAMES=['HALFTONE','OUTLINE','SOLID','CONTOUR','HATCH','PIXEL','STRUCTURE','SCANLINE'];
 const NV=NAMES.length;
 const EMO=[{n:'Wish',v:0,k:'wish',f:'audio/wish.mp3'},{n:'Stargaze',v:1,k:'star',f:'audio/stargaze.mp3'},{n:'ct16031',v:5,k:'glitch',f:'audio/ct16031.mp3'},{n:'BLIZZARD',v:3,k:'snow',f:'audio/blizzard.mp3'},{n:'Rain Dance',v:7,k:'rain',f:'audio/raindance.mp3'}];
-$('#emo').innerHTML=EMO.map((e,i)=>`<li><button data-i="${i}" data-v="${e.v}" aria-pressed="false"><svg class="ic"><use href="#ast"/></svg><span class="t">${e.n}</span><span class="tr"><svg><use href="#ast"/></svg><i class="ln"></i><svg><use href="#ast"/></svg></span></button></li>`).join('');
+$('#emo').innerHTML=EMO.map((e,i)=>`<li><button data-i="${i}" data-v="${e.v}" aria-pressed="false"><svg class="ic"><use href="#ast"/></svg><span class="t">${e.n}</span><span class="tr"><svg><use href="#ast"/></svg><svg><use href="#ast"/></svg><svg><use href="#ast"/></svg></span></button></li>`).join('');
 
 /* logo variants, drawn once into a 4x2 atlas (1024px cells) */
 const CELL=1024,AL=500,AT=74;
