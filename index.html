@@ -171,6 +171,17 @@ h2.ph span:nth-child(2){padding-left:calc(54*var(--u))}
 .rvt b{font-weight:400;background:var(--cyan);color:#000;padding:0 .3em;margin-right:.5em}
 .rvh{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);color:rgba(255,255,255,.75);font:11px var(--mono);letter-spacing:.2em;width:min(92vw,700px);text-align:center;pointer-events:none}
 
+#rd{position:absolute;inset:0;z-index:1;background:rgba(16,36,34,.94);display:none;align-items:center;justify-content:center;overflow:hidden;touch-action:none;cursor:grab}
+#rd.on{display:flex;animation:rdin .35s ease-out}
+@keyframes rdin{from{opacity:0}}
+#rdimg{max-width:94vw;max-height:calc(100vh - 190px);margin-bottom:40px;box-shadow:0 24px 60px rgba(0,0,0,.45);transform-origin:center;user-select:none;-webkit-user-select:none;cursor:zoom-in}
+#rvbar{position:absolute;left:50%;bottom:46px;transform:translateX(-50%);display:flex;align-items:center;gap:8px;z-index:2}
+#rvbar button{height:34px;min-width:40px;padding:0 12px;border:1px solid rgba(255,255,255,.75);color:#fff;font:12px var(--mono);letter-spacing:.08em;background:rgba(0,0,0,.18)}
+#rvbar button:hover,#rvbar button:focus-visible{background:var(--cyan);color:#000;border-color:var(--cyan)}
+#rvpg{color:#fff;font:12px var(--mono);letter-spacing:.1em;min-width:110px;text-align:center}
+#rvread{margin-left:10px}
+.rvt,.rvh{z-index:2}
+#loupe{position:fixed;left:0;top:0;width:220px;height:220px;border-radius:50%;pointer-events:none;z-index:95;display:none;transform:translate(-50%,-50%);box-shadow:0 0 0 2px #fff,0 0 0 3px rgba(0,0,0,.25),0 16px 36px rgba(0,0,0,.35)}
 /* footer */
 #footer{height:calc(735*var(--u))}
 .flinks a{color:var(--blue);text-decoration:none}
@@ -410,7 +421,12 @@ body.locked{overflow:hidden}
   </div>
 </footer>
 
-<div id="rv" aria-modal="true" role="dialog" aria-label="Report viewer"><canvas id="rvc"></canvas><img id="rvimg" alt="Report page"><div class="rvt"><b>3D</b><span id="rvt"></span></div><div class="rvh">DRAG TO ROTATE · SCROLL TO ZOOM · CLICK OUTSIDE TO CLOSE</div></div>
+<div id="rv" aria-modal="true" role="dialog" aria-label="Report viewer"><canvas id="rvc"></canvas><img id="rvimg" alt="Report page">
+<div id="rd"><img id="rdimg" alt="Report page, full resolution" draggable="false"></div>
+<div class="rvt"><b>3D</b><span id="rvt"></span></div>
+<div id="rvbar"><button id="rvprev" aria-label="Flip to the other page">←</button><span id="rvpg">PAGE 01 / 02</span><button id="rvnext" aria-label="Flip to the other page">→</button><button id="rvread">READ ⤢</button></div>
+<div class="rvh" id="rvhint">DRAG TO ROTATE · DOUBLE-CLICK OR READ TO READ · CLICK OUTSIDE TO CLOSE</div></div>
+<canvas id="loupe" aria-hidden="true"></canvas>
 <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="mt">
   <div class="sheet" id="sheet"></div>
 </div>
@@ -851,20 +867,21 @@ document.addEventListener('pointerdown',e=>{if(!e.target.closest('.node'))Object
 let ft=0;function floatN(t){if(!drag&&!RM){N.forEach((n,i)=>{const p=pos[n.id];if(!p)return;nodes[n.id].style.transform=`translate(-50%,-50%) translate(${Math.sin(t/1400+i*2)*4}px,${Math.cos(t/1700+i)*4}px)`})}requestAnimationFrame(floatN)}
 requestAnimationFrame(floatN);
 
-/* ---- 3D report viewer (own small WebGL renderer): paper un-crumples out of the folder, drag to orbit, click outside to crumple it back ---- */
-const RV={on:false},GX=64,GY=46,PW=2.2,PHH=2.2*RH/RW,FOV=32*Math.PI/180;
+/* ---- 3D report viewer: a two-sided sheet (page 1 front, page 2 back) that un-crumples out of the folder.
+   Drag to orbit, ← → flips the sheet, the loupe magnifies under the cursor, READ opens a flat full-res reading view. ---- */
+const RV={on:false,read:false},GX=64,GY=46,PW=2.2,PHH=2.2*1235/1748,FOV=32*Math.PI/180,RY0=-.42,RX0=.1;
 const M4={
  mul(a,b){const o=new Float32Array(16);for(let i=0;i<4;i++)for(let j=0;j<4;j++){let s=0;for(let k=0;k<4;k++)s+=a[k*4+j]*b[i*4+k];o[i*4+j]=s}return o},
  per(f,a,n,fa){const t=1/Math.tan(f/2),o=new Float32Array(16);o[0]=t/a;o[5]=t;o[10]=(fa+n)/(n-fa);o[11]=-1;o[14]=2*fa*n/(n-fa);return o},
- tr(x,y,z){const o=new Float32Array([1,0,0,0,0,1,0,0,0,0,1,0,x,y,z,1]);return o},
+ tr(x,y,z){return new Float32Array([1,0,0,0,0,1,0,0,0,0,1,0,x,y,z,1])},
  sc(s){return new Float32Array([s,0,0,0,0,s,0,0,0,0,s,0,0,0,0,1])},
  rx(a){const c=Math.cos(a),s=Math.sin(a);return new Float32Array([1,0,0,0,0,c,s,0,0,-s,c,0,0,0,0,1])},
  ry(a){const c=Math.cos(a),s=Math.sin(a);return new Float32Array([c,0,-s,0,0,1,0,0,s,0,c,0,0,0,0,1])}};
 function initViewer(){if(RV.gl)return true;const cv=$('#rvc'),gl=cv.getContext('webgl',{antialias:true,alpha:true,premultipliedAlpha:true});if(!gl)return false;
  const vs=`attribute vec3 p,nm;attribute vec2 t;uniform mat4 P,V,M;varying vec2 vt;varying vec3 vn;void main(){vt=t;vn=(M*vec4(nm,0.)).xyz;gl_Position=P*V*M*vec4(p,1.);}`;
- const fs=`precision mediump float;uniform sampler2D T;varying vec2 vt;varying vec3 vn;void main(){vec3 n=normalize(vn);if(!gl_FrontFacing)n=-n;
+ const fs=`precision mediump float;uniform sampler2D T,T2;varying vec2 vt;varying vec3 vn;void main(){vec3 n=normalize(vn);if(!gl_FrontFacing)n=-n;
   float l=.74+.5*max(dot(n,normalize(vec3(.35,.6,1.))),0.)+.18*max(dot(n,normalize(vec3(-.8,-.3,.5))),0.);
-  vec3 c=gl_FrontFacing?texture2D(T,vt).rgb:vec3(.93);gl_FragColor=vec4(min(c*l,1.),1.);}`;
+  vec3 c=gl_FrontFacing?texture2D(T,vt).rgb:texture2D(T2,vec2(1.-vt.x,vt.y)).rgb;gl_FragColor=vec4(min(c*l,1.),1.);}`;
  const sh=(ty,src)=>{const o=gl.createShader(ty);gl.shaderSource(o,src);gl.compileShader(o);return o};
  const pr=gl.createProgram();gl.attachShader(pr,sh(gl.VERTEX_SHADER,vs));gl.attachShader(pr,sh(gl.FRAGMENT_SHADER,fs));gl.linkProgram(pr);gl.useProgram(pr);
  const nv=(GX+1)*(GY+1),base=new Float32Array(nv*3),uv=new Float32Array(nv*2),idx=new Uint16Array(GX*GY*6);
@@ -874,17 +891,24 @@ function initViewer(){if(RV.gl)return true;const cv=$('#rvc'),gl=cv.getContext('
  const pos=new Float32Array(base),nrm=new Float32Array(nv*3);
  const pb=buf(pos,'p',3,1),nb=buf(nrm,'nm',3,1);buf(uv,'t',2,0);
  const ib=gl.createBuffer();gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,ib);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,idx,gl.STATIC_DRAW);
- const tex=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,tex);
- const an=gl.getExtension('EXT_texture_filter_anisotropic');
- Object.assign(RV,{gl,cv,pr,base,pos,nrm,idx,pb,nb,tex,an,U:{P:gl.getUniformLocation(pr,'P'),V:gl.getUniformLocation(pr,'V'),M:gl.getUniformLocation(pr,'M')},c:-1,ury:0,urx:0,vy:0,vx:0,dist:4.6,cz:4.6});
+ const tx=[gl.createTexture(),gl.createTexture()];
+ gl.uniform1i(gl.getUniformLocation(pr,'T'),0);gl.uniform1i(gl.getUniformLocation(pr,'T2'),1);
+ Object.assign(RV,{gl,cv,pr,base,pos,nrm,idx,pb,nb,tx,an:gl.getExtension('EXT_texture_filter_anisotropic'),U:{P:gl.getUniformLocation(pr,'P'),V:gl.getUniformLocation(pr,'V'),M:gl.getUniformLocation(pr,'M')},c:-1,ury:0,urx:0,vy:0,vx:0,dist:4.6,cz:4.6,P:[0,0,0],s:1,ax:RX0,by:RY0});
  gl.enable(gl.DEPTH_TEST);
  const fit=()=>{const d=Math.min(devicePixelRatio||1,2);cv.width=innerWidth*d;cv.height=innerHeight*d;gl.viewport(0,0,cv.width,cv.height);RV.dist=Math.max(4.6,1.32/(Math.tan(FOV/2)*innerWidth/innerHeight))};fit();addEventListener('resize',fit);
  let pd=null;
- cv.addEventListener('pointerdown',e=>{pd={lx:e.clientX,ly:e.clientY,m:0};cv.setPointerCapture(e.pointerId)});
- cv.addEventListener('pointermove',e=>{if(!pd||RV.mode)return;const dx=e.clientX-pd.lx,dy=e.clientY-pd.ly;pd.lx=e.clientX;pd.ly=e.clientY;pd.m+=Math.abs(dx)+Math.abs(dy);RV.ury+=dx*.008;RV.urx=Math.max(-1.1,Math.min(1.1,RV.urx+dy*.006));RV.vy=dx*.008;RV.vx=dy*.006});
- cv.addEventListener('pointerup',e=>{if(!pd)return;const m=pd.m;pd=null;if(m<6&&!RV.mode&&!hitPaper(e.clientX,e.clientY))closeViewer()});
- cv.addEventListener('wheel',e=>{e.preventDefault();RV.dist=Math.max(2.6,Math.min(9,RV.dist+e.deltaY*.003))},{passive:false});
+ cv.addEventListener('pointerdown',e=>{pd={lx:e.clientX,ly:e.clientY,m:0};cv.setPointerCapture(e.pointerId);loupe(null)});
+ cv.addEventListener('pointermove',e=>{if(!pd){if(e.pointerType=='mouse')loupe(e);return}if(RV.mode)return;const dx=e.clientX-pd.lx,dy=e.clientY-pd.ly;pd.lx=e.clientX;pd.ly=e.clientY;pd.m+=Math.abs(dx)+Math.abs(dy);RV.flipTo=null;RV.ury+=dx*.008;RV.urx=Math.max(-1.1,Math.min(1.1,RV.urx+dy*.006));RV.vy=dx*.008;RV.vx=dy*.006});
+ cv.addEventListener('pointerup',e=>{if(!pd)return;const m=pd.m;pd=null;if(m<6&&!RV.mode&&!uvAt(e.clientX,e.clientY))closeViewer();else if(e.pointerType=='mouse')loupe(e)});
+ cv.addEventListener('pointerleave',()=>loupe(null));
+ cv.addEventListener('dblclick',e=>{if(uvAt(e.clientX,e.clientY))enterRead()});
+ cv.addEventListener('wheel',e=>{e.preventDefault();RV.dist=Math.max(2.6,Math.min(9,RV.dist+e.deltaY*.003));loupe(null)},{passive:false});
  return true}
+function upload(unit,src){const gl=RV.gl,S=Math.min(2048,gl.getParameter(gl.MAX_TEXTURE_SIZE)),pot=document.createElement('canvas');pot.width=pot.height=S;pot.getContext('2d').drawImage(src,0,0,S,S);
+ gl.activeTexture(gl.TEXTURE0+unit);gl.bindTexture(gl.TEXTURE_2D,RV.tx[unit]);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,pot);gl.generateMipmap(gl.TEXTURE_2D);
+ gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+ gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+ if(RV.an)gl.texParameterf(gl.TEXTURE_2D,RV.an.TEXTURE_MAX_ANISOTROPY_EXT,Math.min(16,gl.getParameter(RV.an.MAX_TEXTURE_MAX_ANISOTROPY_EXT)));gl.activeTexture(gl.TEXTURE0)}
 function crumple(c){if(Math.abs(c-RV.c)<1e-4)return;RV.c=c;const p=RV.pos,b=RV.base,S=RV.seed||0,gl=RV.gl;
  const bb=(x=>x*x*(3-2*x))(Math.max(0,(c-.3)/.7));
  for(let i=0;i<p.length;i+=3){const x0=b[i],y0=b[i+1];
@@ -898,37 +922,71 @@ function crumple(c){if(Math.abs(c-RV.c)<1e-4)return;RV.c=c;const p=RV.pos,b=RV.b
  gl.bindBuffer(gl.ARRAY_BUFFER,RV.pb);gl.bufferSubData(gl.ARRAY_BUFFER,0,p);gl.bindBuffer(gl.ARRAY_BUFFER,RV.nb);gl.bufferSubData(gl.ARRAY_BUFFER,0,n)}
 const camP=()=>M4.per(FOV,innerWidth/innerHeight,.1,100);
 function worldAt(el){const r=el.getBoundingClientRect(),x=(r.left+r.width/2)/innerWidth*2-1,y=-((r.top+r.height/2)/innerHeight)*2+1,t=Math.tan(FOV/2);return[x*t*innerWidth/innerHeight*RV.cz,y*t*RV.cz,0]}
-function hitPaper(cx,cy){const P=M4.mul(camP(),M4.mul(M4.tr(0,0,-RV.cz),RV.M)),pts=[[-1,-1],[1,-1],[1,1],[-1,1]].map(([a,b])=>{const x=a*PW/2,y=b*PHH/2,w=P[3]*x+P[7]*y+P[15];return[((P[0]*x+P[4]*y+P[12])/w+1)/2*innerWidth,(1-(P[1]*x+P[5]*y+P[13])/w)/2*innerHeight]});
- let inside=false;for(let i=0,j=3;i<4;j=i++){const[xi,yi]=pts[i],[xj,yj]=pts[j];if((yi>cy)!=(yj>cy)&&cx<(xj-xi)*(cy-yi)/(yj-yi)+xi)inside=!inside}return inside}
+/* screen point -> where it lands on the flat sheet (u,v in 0..1 of the page image) and which side faces the viewer */
+function uvAt(cx,cy){if(RV.mode||!RV.gl)return null;const t=Math.tan(FOV/2),asp=innerWidth/innerHeight;
+ let d=[(cx/innerWidth*2-1)*t*asp,-(cy/innerHeight*2-1)*t,-1],o=[-RV.P[0],-RV.P[1],RV.cz-RV.P[2]];
+ const inv=v=>{const ca=Math.cos(RV.ax),sa=Math.sin(RV.ax),cb=Math.cos(RV.by),sb=Math.sin(RV.by);let[x,y,z]=v;[y,z]=[y*ca+z*sa,-y*sa+z*ca];[x,z]=[x*cb-z*sb,x*sb+z*cb];return[x/RV.s,y/RV.s,z/RV.s]};
+ o=inv(o);d=inv(d);if(Math.abs(d[2])<1e-6)return null;const l=-o[2]/d[2];if(l<0)return null;
+ let u=(o[0]+l*d[0])/PW+.5,v=.5-(o[1]+l*d[1])/PHH;if(u<0||u>1||v<0||v>1)return null;
+ const side=d[2]<0?0:1;if(side)u=1-u;return{u,v,side}}
+const side=()=>Math.cos(RX0+RV.urx)*Math.cos(RY0+RV.ury)>=0?0:1;
+const curPage=()=>side()?1-RV.pg0:RV.pg0;
+/* loupe: native-resolution circle under the cursor */
+const lp=$('#loupe'),lc=lp.getContext('2d');
+function loupe(e){if(!e||RV.read||RV.mode||!RV.on){lp.style.display='none';return}const h=uvAt(e.clientX,e.clientY);if(!h){lp.style.display='none';return}
+ const im=RV.imgs[h.side?1-RV.pg0:RV.pg0],iw=im.naturalWidth||im.width,ih=im.naturalHeight||im.height,D=220,dp=Math.min(devicePixelRatio||1,2),win=190;
+ if(lp.width!=D*dp){lp.width=lp.height=D*dp}
+ lc.setTransform(dp,0,0,dp,0,0);lc.fillStyle=im.complete===false?'#fff':'#fff';lc.fillRect(0,0,D,D);
+ lc.imageSmoothingQuality='high';lc.drawImage(im,h.u*iw-win/2,h.v*ih-win/2,win,win,0,0,D,D);
+ lc.strokeStyle='rgba(0,229,224,.9)';lc.lineWidth=1;lc.beginPath();lc.moveTo(D/2-7,D/2);lc.lineTo(D/2+7,D/2);lc.moveTo(D/2,D/2-7);lc.lineTo(D/2,D/2+7);lc.stroke();
+ lp.style.display='block';lp.style.left=e.clientX+'px';lp.style.top=e.clientY+'px'}
+/* reading mode: flat, full resolution, pan + zoom */
+const rd=$('#rd'),rdi=$('#rdimg'),Z={s:1,x:0,y:0};
+const zap=()=>{rdi.style.transform=`translate(${Z.x}px,${Z.y}px) scale(${Z.s})`};
+function setReadImg(){const im=RV.imgs[curPageT()];rdi.src=im.src||im.toDataURL('image/jpeg',.92)}
+const curPageT=()=>RV.flipTo!=null?(Math.cos(RX0)*Math.cos(RY0+RV.flipTo)>=0?RV.pg0:1-RV.pg0):curPage();
+function enterRead(){if(RV.mode||!RV.on)return;RV.read=true;loupe(null);Z.s=1;Z.x=Z.y=0;zap();setReadImg();rd.classList.add('on');$('#rvread').textContent='3D VIEW';$('#rvhint').textContent='SCROLL / PINCH TO ZOOM · DRAG TO MOVE · DOUBLE-CLICK TO ZOOM · CLICK OUTSIDE TO GO BACK'}
+function exitRead(){RV.read=false;rd.classList.remove('on');$('#rvread').textContent='READ ⤢';$('#rvhint').textContent='DRAG TO ROTATE · DOUBLE-CLICK OR READ TO READ · CLICK OUTSIDE TO CLOSE'}
+{const pts=new Map();let pin=null,mv=0;
+ const zoomAt=(mx,my,ns)=>{ns=Math.max(1,Math.min(6,ns));const r=rd.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;Z.x=(mx-cx)-(ns/Z.s)*(mx-cx-Z.x);Z.y=(my-cy)-(ns/Z.s)*(my-cy-Z.y);Z.s=ns;if(Z.s==1){Z.x=Z.y=0}zap()};
+ rd.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.clientX,e.clientY,Z.s*Math.exp(-e.deltaY*.0018))},{passive:false});
+ rd.addEventListener('pointerdown',e=>{rd.setPointerCapture(e.pointerId);pts.set(e.pointerId,[e.clientX,e.clientY]);mv=0;if(pts.size==2){const[a,b]=[...pts.values()];pin={d:Math.hypot(a[0]-b[0],a[1]-b[1]),s:Z.s}}});
+ rd.addEventListener('pointermove',e=>{if(!pts.has(e.pointerId))return;const [px,py]=pts.get(e.pointerId);pts.set(e.pointerId,[e.clientX,e.clientY]);mv+=Math.abs(e.clientX-px)+Math.abs(e.clientY-py);
+  if(pts.size==2&&pin){const[a,b]=[...pts.values()];zoomAt((a[0]+b[0])/2,(a[1]+b[1])/2,pin.s*Math.hypot(a[0]-b[0],a[1]-b[1])/pin.d)}else{Z.x+=e.clientX-px;Z.y+=e.clientY-py;zap()}});
+ const up=e=>{pts.delete(e.pointerId);if(pts.size<2)pin=null;if(mv<6&&e.target==rd)exitRead()};
+ rd.addEventListener('pointerup',up);rd.addEventListener('pointercancel',e=>{pts.delete(e.pointerId);pin=null});
+ rdi.addEventListener('dblclick',e=>{Z.s>1.05?(Z.s=1,Z.x=Z.y=0,zap()):zoomAt(e.clientX,e.clientY,2.6)});}
+function flip(){if(!RV.on||RV.mode)return;RV.flipTo=Math.round(RV.ury/Math.PI)*Math.PI+Math.PI;RV.vx=RV.vy=0;if(RV.read)setReadImg()}
+$('#rvprev').addEventListener('click',flip);$('#rvnext').addEventListener('click',flip);
+$('#rvread').addEventListener('click',()=>RV.read?exitRead():enterRead());
 async function openViewer(id,pg,fromEl){if(RV.on)return;Object.keys(nodes).forEach(closeF);
- const n=N.find(x=>x.id==id),rv=$('#rv');$('#rvt').textContent=`REPORT NO. ${n.no} — ${n.rt||n.n.replace(/[\[\]]/g,'')} / PAGE 0${pg+1}`;
- const src=await loadRep(id,pg);
- if(!initViewer()){$('#rvimg').src=src.src||src.toDataURL('image/jpeg',.9);rv.classList.add('on','flat');document.body.classList.add('locked');RV.on=true;return}
- const gl=RV.gl,pot=document.createElement('canvas');pot.width=2048;pot.height=1024;pot.getContext('2d').drawImage(src,0,0,2048,1024);
- gl.bindTexture(gl.TEXTURE_2D,RV.tex);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,pot);gl.generateMipmap(gl.TEXTURE_2D);
- gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
- gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
- if(RV.an)gl.texParameterf(gl.TEXTURE_2D,RV.an.TEXTURE_MAX_ANISOTROPY_EXT,Math.min(8,gl.getParameter(RV.an.MAX_TEXTURE_MAX_ANISOTROPY_EXT)));
- RV.seed=Math.random()*10;RV.c=-1;RV.id=id;RV.from=fromEl;RV.cz=RV.dist;RV.start=worldAt(fromEl);RV.ury=RV.urx=RV.vx=RV.vy=0;RV.mode='open';RV.t0=performance.now();
- rv.classList.remove('flat','closing');rv.classList.add('on');document.body.classList.add('locked');RV.on=true;if(!RV.loop){RV.loop=true;requestAnimationFrame(rvFrame)}}
-function closeViewer(){if(!RV.on||RV.mode=='close')return;const rv=$('#rv');
+ const n=N.find(x=>x.id==id),rv=$('#rv');RV.title=`REPORT NO. ${n.no} — ${n.rt||n.n.replace(/[\[\]]/g,'')}`;RV.lastPg=-1;
+ const ims=await Promise.all([loadRep(id,0),loadRep(id,1)]);RV.imgs=ims;RV.pg0=pg;
+ if(!initViewer()){$('#rvimg').src=ims[pg].src||ims[pg].toDataURL('image/jpeg',.9);$('#rvt').textContent=RV.title+` / PAGE 0${pg+1}`;rv.classList.add('on','flat');document.body.classList.add('locked');RV.on=true;return}
+ upload(0,ims[pg]);upload(1,ims[1-pg]);
+ RV.seed=Math.random()*10;RV.c=-1;RV.id=id;RV.from=fromEl;RV.cz=RV.dist;RV.start=worldAt(fromEl);RV.ury=RV.urx=RV.vx=RV.vy=0;RV.flipTo=null;RV.mode='open';RV.t0=performance.now();
+ exitRead();rv.classList.remove('flat','closing');rv.classList.add('on');document.body.classList.add('locked');RV.on=true;if(!RV.loop){RV.loop=true;requestAnimationFrame(rvFrame)}}
+function closeViewer(){if(!RV.on||RV.mode=='close')return;const rv=$('#rv');loupe(null);
+ if(RV.read){exitRead();return}
  if(rv.classList.contains('flat')){rv.classList.remove('on');document.body.classList.remove('locked');RV.on=false;return}
  const tgt=nodes[RV.id]?nodes[RV.id].querySelector('.fd'):RV.from;RV.start=worldAt(tgt);RV.mode='close';RV.t0=performance.now();RV.cr={x:RV.urx,y:RV.ury};rv.classList.add('closing')}
 const eo=x=>1-Math.pow(1-x,3),eio=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2,lerp3=(a,b,e)=>a.map((v,i)=>v+(b[i]-v)*e);
 function rvFrame(t){if(!RV.on){RV.loop=false;return}
- const gl=RV.gl,ry0=-.42,rx0=.1;let c=0,ex=0,ey=0,s=1,P=[0,0,0];
+ const gl=RV.gl;let c=0,ex=0,ey=0,s=1,P=[0,0,0];
  RV.cz+=(RV.dist-RV.cz)*.12;
  if(RV.mode=='open'){const k=Math.min(1,(t-RV.t0)/(RM?1:1400)),e=eo(k);c=1-eio(Math.min(1,k*1.15));s=.16+.84*e;ey=(1-e)*Math.PI*1.6;ex=(1-e)*.9;P=lerp3(RV.start,[0,0,0],e);if(k>=1)RV.mode=null}
  else if(RV.mode=='close'){const k=Math.min(1,(t-RV.t0)/(RM?1:1100)),e=eio(k);c=eio(Math.min(1,k*1.3));s=1-.86*e;ey=-e*Math.PI*1.8;ex=e*.8;RV.ury=RV.cr.y*(1-e);RV.urx=RV.cr.x*(1-e);P=lerp3([0,0,0],RV.start,e);
   if(k>=1){$('#rv').classList.remove('on','closing');document.body.classList.remove('locked');RV.on=false;RV.mode=null;const f=nodes[RV.id];if(f){const fd=f.querySelector('.fd');fd.classList.add('gulp');setTimeout(()=>fd.classList.remove('gulp'),500)}}}
+ else if(RV.flipTo!=null){RV.ury+=(RV.flipTo-RV.ury)*(RM?1:.13);RV.urx*=.85;if(Math.abs(RV.flipTo-RV.ury)<.002){RV.ury=RV.flipTo;RV.flipTo=null}P=[0,0,0]}
  else{RV.ury+=RV.vy;RV.urx=Math.max(-1.1,Math.min(1.1,RV.urx+RV.vx));RV.vy*=.92;RV.vx*=.92;P=[0,RM?0:Math.sin(t/1300)*.03,0]}
- crumple(c);
- RV.M=M4.mul(M4.tr(...P),M4.mul(M4.rx(rx0+RV.urx+ex),M4.mul(M4.ry(ry0+RV.ury+ey),M4.sc(s))));
+ crumple(c);RV.P=P;RV.s=s;RV.ax=RX0+RV.urx+ex;RV.by=RY0+RV.ury+ey;
+ const cp=curPage();if(cp!==RV.lastPg){RV.lastPg=cp;$('#rvt').textContent=RV.title+` / PAGE 0${cp+1}`;$('#rvpg').textContent=`PAGE 0${cp+1} / 02`}
+ RV.M=M4.mul(M4.tr(...P),M4.mul(M4.rx(RV.ax),M4.mul(M4.ry(RV.by),M4.sc(s))));
  gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.useProgram(RV.pr);
  gl.uniformMatrix4fv(RV.U.P,false,camP());gl.uniformMatrix4fv(RV.U.V,false,M4.tr(0,0,-RV.cz));gl.uniformMatrix4fv(RV.U.M,false,RV.M);
  gl.drawElements(gl.TRIANGLES,RV.idx.length,gl.UNSIGNED_SHORT,0);requestAnimationFrame(rvFrame)}
-$('#rv').addEventListener('click',e=>{if($('#rv').classList.contains('flat'))closeViewer()});
-addEventListener('keydown',e=>{if(e.key=='Escape'&&RV.on)closeViewer()});
+$('#rv').addEventListener('click',e=>{if($('#rv').classList.contains('flat')&&e.target.id!='rvread')closeViewer()});
+addEventListener('keydown',e=>{if(!RV.on)return;if(e.key=='Escape')closeViewer();else if(e.key=='ArrowLeft'||e.key=='ArrowRight'){e.preventDefault();flip()}else if(e.key=='Enter'||e.key=='r'||e.key=='R'){RV.read?exitRead():enterRead()}});
 $('#preview').addEventListener('click',()=>openViewer('lost',0,$('#preview')));
 document.querySelectorAll('#params a,#focus a').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();gEl.scrollIntoView({behavior:'smooth',block:'center'});Object.values(nodes).forEach((el,i)=>{el.animate([{filter:'none'},{filter:'invert(1)'},{filter:'none'}],{duration:500,delay:i*80})})}));
 
