@@ -685,7 +685,7 @@ $('#pp').addEventListener('click',()=>{if(playing)pauseSong();else if(sel>=0)pla
  const h=(a,b,cc)=>{const s=Math.sin(a*127.1+b*311.7+cc*74.7)*43758.5453;return s-Math.floor(s)};
  const inLogo=(x,y)=>{const dx=(x-cx)/R,dy=(y-cy)/R;for(const a of [Math.PI/2,Math.PI/6,5*Math.PI/6]){const u=dx*Math.cos(a)+dy*Math.sin(a),w=-dx*Math.sin(a)+dy*Math.cos(a);if(Math.abs(u)<=.977&&Math.abs(w)<=hw)return true}return false};
  const setup=()=>{W=it.clientWidth;H=it.clientHeight;dp=Math.min(devicePixelRatio||1,2);cv.width=W*dp;cv.height=H*dp;g.setTransform(dp,0,0,dp,0,0);
-  const D=Math.min(W*.32,H*.32);c=D/28;cx=W/2;cy=H/2;R=D/2;cols=Math.ceil(W/c)+1;rows=Math.ceil(H/c)+1;const ox=cx-Math.floor(cx/c)*c,oy=cy-Math.floor(cy/c)*c;
+  const D=Math.min(W*.25,H*.25);c=D/24;cx=W/2;cy=H/2;R=D/2;cols=Math.ceil(W/c)+1;rows=Math.ceil(H/c)+1;const ox=cx-Math.floor(cx/c)*c,oy=cy-Math.floor(cy/c)*c;
   cells=[];for(let j=0;j<rows;j++)for(let i=0;i<cols;i++){const x=ox+i*c,y=oy+j*c;cells.push({i,j,x,y,m:inLogo(x,y),r:Math.random(),th:Math.atan2(y-cy,x-cx),rd:Math.hypot(x-cx,y-cy)/R})}};
  setup();addEventListener('resize',()=>{if(it.isConnected)setup()});
  const grid=(i,j)=>i>=0&&j>=0&&i<cols&&j<rows?cells[j*cols+i]:null;
