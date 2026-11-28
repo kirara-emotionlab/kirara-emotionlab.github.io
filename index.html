@@ -698,8 +698,8 @@ $('#pp').addEventListener('click',()=>{if(playing)pauseSong();else if(sel>=0)pla
  const span=()=>{let a=1e9,b=-1e9,t=1e9,u=-1e9;cells.forEach(C=>{if(C.m){a=Math.min(a,C.i);b=Math.max(b,C.i);t=Math.min(t,C.j);u=Math.max(u,C.j)}});return{a,b,t,u}};
  let S=span(),colTop=[],colBot=[];
  const cols2=()=>{colTop=[];colBot=[];for(let i=S.a;i<=S.b;i++){let t=1e9,u=-1e9;for(let j=S.t;j<=S.u;j++){const C=grid(i,j);if(C&&C.m){t=Math.min(t,j);u=Math.max(u,j)}}colTop[i]=t;colBot[i]=u}};
- const newDrop=(i,first)=>({i,y:first?colTop[i]-Math.random()*(S.u-S.t)*1.4:colTop[i]-1-Math.random()*10,v:6+Math.random()*10,len:5+Math.random()*8,word:Math.random()<.12});
- const seed=()=>{drops.length=0;S=span();cols2();for(let i=S.a;i<=S.b;i++){if(colTop[i]>1e8)continue;for(let n=0;n<3;n++)drops.push(newDrop(i,true))}};
+ const newDrop=(i,first)=>({i,y:first?colTop[i]-1-Math.random()*(S.u-S.t)*.9:colTop[i]-1-Math.random()*10,v:6+Math.random()*10,len:5+Math.random()*8,word:Math.random()<.12});
+ let seen=new Uint8Array(1);const seed=()=>{drops.length=0;S=span();cols2();seen=new Uint8Array(cells.length);for(let i=S.a;i<=S.b;i++){if(colTop[i]>1e8)continue;for(let n=0;n<3;n++)drops.push(newDrop(i,true))}};
  seed();addEventListener('resize',()=>{if(it.isConnected)seed()});
  const t0=performance.now();let fronts=null;
  /* exit: the rain breaks out of the logo and pours down the whole screen, column by column; above each falling trail the
@@ -707,7 +707,6 @@ $('#pp').addEventListener('click',()=>{if(playing)pauseSong();else if(sel>=0)pla
  const startFronts=()=>{fronts=[];for(let i=0;i<cols;i++){const d=drops.filter(q=>q.i===i);const head=d.length?Math.max(...d.map(q=>q.y)):-2;
    fronts.push({y:Math.max(-2,Math.min(head,rows*.2))-Math.random()*3,v:18+Math.random()*16,a:70+Math.random()*60,delay:Math.random()*.28,len:6+Math.random()*10})}};
  const loop=()=>{if(!it.isConnected)return;const T=(performance.now()-t0)/1000,dt=Math.min(.05,T-lastT);lastT=T;
-  const fade=Math.min(1,T/1.2);
   for(const d of drops){let v=d.v;const C=grid(d.i,Math.floor(d.y));if(C&&mx>-1e3){const md=Math.hypot(C.x-mx,C.y-my)/(R*.45);if(md<1)v*=1+(1-md)*2.5}
    d.y+=v*dt*(RM?0:1);if(d.y-d.len>colBot[d.i]+4)Object.assign(d,newDrop(d.i,false))}
   let done=true;
@@ -721,13 +720,13 @@ $('#pp').addEventListener('click',()=>{if(playing)pauseSong();else if(sel>=0)pla
   const B=new Float32Array(cells.length),HD=new Uint8Array(cells.length),WC=new Array(cells.length);
   for(const d of drops){const hj=Math.floor(d.y);for(let j=hj-Math.ceil(d.len);j<=hj;j++){const C=grid(d.i,j);if(!C)continue;const k=j*cols+d.i;
     let b=1-(d.y-j)/d.len;if(!C.m){if(j<=colBot[d.i]||j>colBot[d.i]+3)continue;b*=.45*(1-(j-colBot[d.i])/4)}
-    if(b>B[k]){B[k]=b;if(d.word)WC[k]=WORD[((hj-j)%WORD.length+WORD.length)%WORD.length]}if(j===hj&&C.m)HD[k]=1}}
+    if(b>B[k]){B[k]=b;if(d.word)WC[k]=WORD[((hj-j)%WORD.length+WORD.length)%WORD.length]}if(C.m)seen[k]=1;if(j===hj&&C.m)HD[k]=1}}
   if(fronts)for(let i=0;i<cols;i++){const f=fronts[i],hj=Math.floor(f.y);for(let j=Math.floor(f.y-f.len);j<=hj;j++){const k=j*cols+i;if(j<0||j>=rows)continue;
     const b=1-(f.y-j)/f.len;if(b>B[k]){B[k]=b;WC[k]=undefined}if(j===hj)HD[k]=1}}
   cells.forEach((C,k)=>{const b0=B[k];
    if(fronts){const f=fronts[C.i];if(C.j<f.y-f.len)return;if(C.j>f.y&&!C.m&&b0<=0)return}
    else if(!C.m&&b0<=0)return;
-   let b=C.m?Math.max(b0,.13):b0;b*=fade;if(C.m&&T<1.2)b=Math.min(b,b0+.13*Math.max(0,T*1.6-C.rd));
+   if(T>3.2||RM)seen[k]=1;let b=C.m&&seen[k]?Math.max(b0,.13):b0;
    if(b<.05)return;
    const ch=WC[k]||GL[Math.floor(h(C.i,C.j,Math.floor(T*(2+h(C.j,C.i,1)*8)))*GL.length)];
    if(HD[k]){g.fillStyle='#00e5e0';g.fillRect(C.x-c/2+.5,C.y-c/2+.5,c-1,c-1);g.fillStyle='#000';g.fillText(ch,C.x,C.y+c*.04);return}
