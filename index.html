@@ -6,7 +6,7 @@
 <title>KIRARA: LAB</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Serif:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Serif:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
 <style>
 /* VOICE: clinical lab archive, terminal-like, glitchy accents
    IDEA: a research institute's index of invisible emotional structures
@@ -219,14 +219,11 @@ h2.ph span:nth-child(2){padding-left:calc(54*var(--u))}
 .arrive{position:fixed;left:50%;top:50%;z-index:80;pointer-events:none;width:40px;height:40px;border-radius:50%;border:1.5px solid var(--cyan);transform:translate(-50%,-50%);animation:arr .8s ease-out forwards}
 @keyframes arr{to{width:120vmax;height:120vmax;opacity:0;border-width:1px}}
 
-#intro{position:fixed;inset:0;z-index:100;background:#fff;overflow:hidden;cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;transition:opacity .8s .35s,visibility .8s .35s}
-#intro.out{opacity:0;visibility:hidden;pointer-events:none}
+/* entry: the KIRARA asterisk as a grid of cells that crumbles into code. A section above the page; after the click the page scrolls on into the hero and the section is dropped. */
 body.locked{overflow:hidden}
-#icv{position:absolute;inset:0;width:100%;height:100%}
-#ihold{position:absolute;left:50%;top:50%;width:1px;height:1px;opacity:0}
-#ihold:focus-visible+.ihint{color:var(--blue)}
-.ihint{position:absolute;left:50%;transform:translateX(-50%);font:11px/1 var(--mono);letter-spacing:.32em;color:#9a9a9a;opacity:0;transition:opacity .6s;pointer-events:none;white-space:nowrap}
-.ihint.on{opacity:1}
+#intro{position:fixed;inset:0;z-index:100;overflow:hidden;background:transparent;cursor:pointer;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+#icv{position:absolute;inset:0;width:100%;height:100%;display:block}
+#ihold{position:absolute;left:0;top:0;width:1px;height:1px;opacity:0}
 
 /* modal */
 .modal{position:fixed;inset:0;background:rgba(255,255,255,.75);backdrop-filter:blur(3px);display:none;place-items:center;z-index:50;padding:16px}
@@ -287,10 +284,7 @@ body.locked{overflow:hidden}
 </style>
 </head>
 <body class="locked">
-<div id="intro" role="dialog" aria-modal="true" aria-label="KIRARA: LAB">
-  <canvas id="icv" aria-hidden="true"></canvas>
-  <button id="ihold" aria-label="Press and hold to enter KIRARA: LAB (sound on)"></button>
-  <div class="ihint" id="ihint" aria-hidden="true">PRESS &amp; HOLD</div>
+<section id="intro" aria-label="KIRARA: LAB — click to enter (sound on)"><canvas id="icv" aria-hidden="true"></canvas><button id="ihold" aria-label="Enter KIRARA: LAB (sound on)"></button></section>
 </div>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -308,7 +302,7 @@ body.locked{overflow:hidden}
   <canvas id="lens" tabindex="0" aria-label="KIRARA logo carousel — drag sideways or use the arrow keys to change the logo"></canvas>
 
   <div class="abs" id="hbrand" style="--x:15;--y:41">
-    <div class="brand u">KIRARA: LAB</div>
+    <div class="brand u" id="replay" role="button" tabindex="0" title="Replay the intro" style="cursor:pointer">KIRARA: LAB</div>
     <div style="margin-top:calc(4*var(--u))">Institute for the Study of Emotions</div>
   </div>
 
@@ -317,7 +311,7 @@ body.locked{overflow:hidden}
   <div class="tree abs deco-m" style="--x:26;--y:62;height:calc(328.5*var(--u))">
     <a href="#vision" style="top:calc(256*var(--u))"><span>VISION</span></a>
     <a href="#archive" style="top:calc(278*var(--u))"><span>REPORT ARCHIVE</span></a>
-    <a href="#philosophy" style="top:calc(319*var(--u))"><span>EMOTION LAB</span></a>
+    <a href="https://answjd418-bit.github.io/kirara/" style="top:calc(319*var(--u))"><span>EMOTION LAB</span></a>
   </div>
 
 
@@ -683,64 +677,73 @@ async function playSong(i,auto){ensureCtx();const tok=++ptok;if(actx.state==='su
 function pauseSong(){const t=tracks[sel];if(!t)return;fadeG(t.g,0,250);setTimeout(()=>{if(!playing)t.a.pause()},260);playing=false;ui()}
 $('#emo').addEventListener('click',e=>{const b=e.target.closest('button');if(b)playSong(+b.dataset.i)});
 $('#pp').addEventListener('click',()=>{if(playing)pauseSong();else if(sel>=0)playSong(sel)});
-/* entry: only the logo. Press & hold fills it; when full it zooms you into the lab and Wish fades in.
-   The press is the gesture browsers need before sound, so Wish starts silently on press and fades up on entry. */
-{const it=$('#intro'),c=$('#icv'),g=c.getContext('2d'),hint=$('#ihint');
- let IW=0,IH=0,imx=-1e4,imy=-1e4,lens=0,prog=0,hold=false,primed=false,exitT=0,alive=true,last=0;
- const fit=()=>{const d=Math.min(devicePixelRatio||1,2);IW=innerWidth;IH=innerHeight;c.width=IW*d;c.height=IH*d;g.setTransform(d,0,0,d,0,0)};
- fit();addEventListener('resize',fit);
- const R0f=()=>IW<700?Math.min(IW*.36,IH*.22):Math.min(IW*.2,IH*.26);
- const sd=(x,y,rot)=>{let d=1e9;for(let i=0;i<3;i++){const a=i*Math.PI/3+rot,cs=Math.cos(a),sn=Math.sin(a),u=x*cs+y*sn,v=-x*sn+y*cs;d=Math.min(d,Math.max(Math.abs(u)-.977,Math.abs(v)-.1445))}return d};
- const hsh=(x,y)=>{const v=Math.sin(x*12.99+y*78.23)*43758.5;return v-Math.floor(v)};
- const sm=(a,b,x)=>{x=Math.max(0,Math.min(1,(x-a)/(b-a)));return x*x*(3-2*x)};
- const prime=()=>{if(primed)return;primed=true;try{ensureCtx();actx.resume().catch(()=>{});const t=trk(0);t.g.gain.value=0;t.a.currentTime=0;t.a.play().catch(()=>{})}catch(e){}};
- const unprime=()=>{if(!primed||exitT)return;primed=false;const t=tracks[0];if(t){t.a.pause();t.a.currentTime=0}};
- const down=e=>{if(exitT)return;if(e&&e.preventDefault)e.preventDefault();hold=true;hint.classList.remove('on');prime()};
- const up=()=>{hold=false};
- it.addEventListener('pointerdown',down);addEventListener('pointerup',up);addEventListener('pointercancel',up);
- it.addEventListener('contextmenu',e=>e.preventDefault());
- it.addEventListener('pointermove',e=>{imx=e.clientX;imy=e.clientY});
- it.addEventListener('pointerleave',()=>{imx=imy=-1e4});
- $('#ihold').addEventListener('keydown',e=>{if((e.key=='Enter'||e.key==' ')&&!e.repeat){down(e)}});
- $('#ihold').addEventListener('keyup',e=>{if(e.key=='Enter'||e.key==' ')up()});
+/* entry: the KIRARA asterisk built from a grid of cells. One part at a time crumbles into code (■ 1 0 * ·) and the digits
+   pour down, then it grows back; the cursor crumbles it too. Click (the gesture that unlocks sound) starts Wish, the square
+   cells round off into the halftone dots of the hero logo, and the page scrolls on into the hero; the section is then dropped. */
+{const it=$('#intro'),cv=$('#icv'),g=cv.getContext('2d');if('scrollRestoration' in history)history.scrollRestoration='manual';scrollTo(0,0);
+ let W,H,c,cx,cy,R,cols,rows,cells=[],dp=1;const hw=.1445;
+ const h=(a,b,cc)=>{const s=Math.sin(a*127.1+b*311.7+cc*74.7)*43758.5453;return s-Math.floor(s)};
+ const inLogo=(x,y)=>{const dx=(x-cx)/R,dy=(y-cy)/R;for(const a of [Math.PI/2,Math.PI/6,5*Math.PI/6]){const u=dx*Math.cos(a)+dy*Math.sin(a),w=-dx*Math.sin(a)+dy*Math.cos(a);if(Math.abs(u)<=.977&&Math.abs(w)<=hw)return true}return false};
+ const setup=()=>{W=it.clientWidth;H=it.clientHeight;dp=Math.min(devicePixelRatio||1,2);cv.width=W*dp;cv.height=H*dp;g.setTransform(dp,0,0,dp,0,0);
+  const D=Math.min(W*.32,H*.32);c=D/28;cx=W/2;cy=H/2;R=D/2;cols=Math.ceil(W/c)+1;rows=Math.ceil(H/c)+1;const ox=cx-Math.floor(cx/c)*c,oy=cy-Math.floor(cy/c)*c;
+  cells=[];for(let j=0;j<rows;j++)for(let i=0;i<cols;i++){const x=ox+i*c,y=oy+j*c;cells.push({i,j,x,y,m:inLogo(x,y),r:Math.random(),th:Math.atan2(y-cy,x-cx),rd:Math.hypot(x-cx,y-cy)/R})}};
+ setup();addEventListener('resize',()=>{if(it.isConnected)setup()});
+ const grid=(i,j)=>i>=0&&j>=0&&i<cols&&j<rows?cells[j*cols+i]:null;
+ /* the logo IS the code rain: no squares, only glyphs. Every logo cell carries a faint glyph so the silhouette stays readable;
+    columns of glyphs fall through it with a cyan-boxed head and a black trail that fades to grey. Now and then a column spells
+    KIRARA. Drops spill a little past the logo's lower edges and fade. The cursor speeds the rain up and flips glyphs. On enter the
+    rain rushes, then every glyph turns into a dot: the halftone of the hero logo. */
+ const GL='0101KIRA*:LAB10',WORD='KIRARA',drops=[];let mx=-1e4,my=-1e4,exitT=null,ready=false,lastT=0;
+ it.addEventListener('pointermove',e=>{const r=it.getBoundingClientRect();mx=e.clientX-r.left;my=e.clientY-r.top});it.addEventListener('pointerleave',()=>{mx=my=-1e4});
+ const span=()=>{let a=1e9,b=-1e9,t=1e9,u=-1e9;cells.forEach(C=>{if(C.m){a=Math.min(a,C.i);b=Math.max(b,C.i);t=Math.min(t,C.j);u=Math.max(u,C.j)}});return{a,b,t,u}};
+ let S=span(),colTop=[],colBot=[];
+ const cols2=()=>{colTop=[];colBot=[];for(let i=S.a;i<=S.b;i++){let t=1e9,u=-1e9;for(let j=S.t;j<=S.u;j++){const C=grid(i,j);if(C&&C.m){t=Math.min(t,j);u=Math.max(u,j)}}colTop[i]=t;colBot[i]=u}};
+ const newDrop=(i,first)=>({i,y:first?colTop[i]-Math.random()*(S.u-S.t)*1.4:colTop[i]-1-Math.random()*10,v:6+Math.random()*10,len:5+Math.random()*8,word:Math.random()<.12});
+ const seed=()=>{drops.length=0;S=span();cols2();for(let i=S.a;i<=S.b;i++){if(colTop[i]>1e8)continue;for(let n=0;n<3;n++)drops.push(newDrop(i,true))}};
+ seed();addEventListener('resize',()=>{if(it.isConnected)seed()});
+ const t0=performance.now();let fronts=null;
+ /* exit: the rain breaks out of the logo and pours down the whole screen, column by column; above each falling trail the
+    page underneath is uncovered. No fades: what reveals the site is the rain itself. */
+ const startFronts=()=>{fronts=[];for(let i=0;i<cols;i++){const d=drops.filter(q=>q.i===i);const head=d.length?Math.max(...d.map(q=>q.y)):-2;
+   fronts.push({y:Math.max(-2,Math.min(head,rows*.2))-Math.random()*3,v:18+Math.random()*16,a:70+Math.random()*60,delay:Math.random()*.28,len:6+Math.random()*10})}};
+ const loop=()=>{if(!it.isConnected)return;const T=(performance.now()-t0)/1000,dt=Math.min(.05,T-lastT);lastT=T;
+  const fade=Math.min(1,T/1.2);
+  for(const d of drops){let v=d.v;const C=grid(d.i,Math.floor(d.y));if(C&&mx>-1e3){const md=Math.hypot(C.x-mx,C.y-my)/(R*.45);if(md<1)v*=1+(1-md)*2.5}
+   d.y+=v*dt*(RM?0:1);if(d.y-d.len>colBot[d.i]+4)Object.assign(d,newDrop(d.i,false))}
+  let done=true;
+  if(fronts){const a=T-exitT;for(const f of fronts){const q=Math.max(0,a-f.delay);if(q>0){f.v+=f.a*dt;f.y+=f.v*dt}if((f.y-f.len)<rows+1)done=false}
+   if(done||RM){finish();return}}
+  g.clearRect(0,0,W,H);g.font=`600 ${c*.92}px "IBM Plex Mono",monospace`;g.textAlign='center';g.textBaseline='middle';
+  const x0=cells[0].x-c/2,y0=cells[0].y-c/2;
+  g.fillStyle='#fff';
+  if(!fronts)g.fillRect(0,0,W,H);
+  else for(let i=0;i<cols;i++){const f=fronts[i],top=y0+(f.y-f.len)*c;if(top<H){const xl=i?x0+i*c:0;g.fillRect(xl,Math.max(0,top),x0+(i+1)*c-xl+.5,H-Math.max(0,top))}}
+  const B=new Float32Array(cells.length),HD=new Uint8Array(cells.length),WC=new Array(cells.length);
+  for(const d of drops){const hj=Math.floor(d.y);for(let j=hj-Math.ceil(d.len);j<=hj;j++){const C=grid(d.i,j);if(!C)continue;const k=j*cols+d.i;
+    let b=1-(d.y-j)/d.len;if(!C.m){if(j<=colBot[d.i]||j>colBot[d.i]+3)continue;b*=.45*(1-(j-colBot[d.i])/4)}
+    if(b>B[k]){B[k]=b;if(d.word)WC[k]=WORD[((hj-j)%WORD.length+WORD.length)%WORD.length]}if(j===hj&&C.m)HD[k]=1}}
+  if(fronts)for(let i=0;i<cols;i++){const f=fronts[i],hj=Math.floor(f.y);for(let j=Math.floor(f.y-f.len);j<=hj;j++){const k=j*cols+i;if(j<0||j>=rows)continue;
+    const b=1-(f.y-j)/f.len;if(b>B[k]){B[k]=b;WC[k]=undefined}if(j===hj)HD[k]=1}}
+  cells.forEach((C,k)=>{const b0=B[k];
+   if(fronts){const f=fronts[C.i];if(C.j<f.y-f.len)return;if(C.j>f.y&&!C.m&&b0<=0)return}
+   else if(!C.m&&b0<=0)return;
+   let b=C.m?Math.max(b0,.13):b0;b*=fade;if(C.m&&T<1.2)b=Math.min(b,b0+.13*Math.max(0,T*1.6-C.rd));
+   if(b<.05)return;
+   const ch=WC[k]||GL[Math.floor(h(C.i,C.j,Math.floor(T*(2+h(C.j,C.i,1)*8)))*GL.length)];
+   if(HD[k]){g.fillStyle='#00e5e0';g.fillRect(C.x-c/2+.5,C.y-c/2+.5,c-1,c-1);g.fillStyle='#000';g.fillText(ch,C.x,C.y+c*.04);return}
+   const md=Math.hypot(C.x-mx,C.y-my)/(R*.35);
+   if(!fronts&&md<1&&h(C.i,C.j,Math.floor(T*14))<(1-md)*.6){g.fillStyle='#00b8b4';g.fillText(ch,C.x,C.y+c*.04);return}
+   const v=Math.round(200-200*Math.min(1,b));g.fillStyle=`rgb(${v},${v},${v})`;g.fillText(ch,C.x,C.y+c*.04)});
+  requestAnimationFrame(loop)};
+ requestAnimationFrame(loop);
+ setTimeout(()=>{ready=true},RM?0:900);
+ const finish=()=>{if(!it.isConnected)return;it.remove();document.body.classList.remove('locked');dispatchEvent(new Event('resize'))};
+ const enter=()=>{if(!ready)return;ready=false;exitT=(performance.now()-t0)/1000;try{playSong(0)}catch(e){}startFronts()};
+ it.addEventListener('click',enter);
+ $('#ihold').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();enter()}});
  $('#ihold').focus({preventScroll:true});
- setTimeout(()=>{if(!hold&&!exitT)hint.classList.add('on')},1400);
- const enter=()=>{exitT=performance.now();it.classList.add('out');document.body.classList.remove('locked');
-  const t=tracks[0];
-  if(t&&!t.a.paused){sel=0;playing=true;t.out=false;fadeG(t.g,1,1800);goTo(0);ui()}else playSong(0);
-  setTimeout(()=>{alive=false;it.remove()},1300)};
- function frame(t){if(!alive)return;
-  const dt=Math.min(.25,(t-(last||t))/1000);last=t;
-  if(!exitT){prog=hold?Math.min(1,prog+dt/1.15):Math.max(0,prog-dt*1.8);if(prog>=1)enter();if(prog===0&&!hold)unprime()}
-  const T=t/1000,R0=R0f(),cx=IW/2,cy=IH/2,sp=Math.max(7,R0/21),p=prog;
-  hint.style.top=(cy+R0*1.22+22)+'px';
-  let e=0;if(exitT){e=Math.min(1,(t-exitT)/1000)}
-  const zoom=1+e*e*11;
-  const rot=RM?0:T*.05+p*p*2.2+e*1.5;
-  const sh=!RM&&p>.65&&!exitT?(p-.65)*7:0;
-  lens+=((imx>-1e3&&!hold?1:0)-lens)*.08;
-  g.clearRect(0,0,IW,IH);
-  const ox=cx+(Math.random()-.5)*sh,oy=cy+(Math.random()-.5)*sh;
-  if(p>0&&!exitT){g.strokeStyle='#000';g.lineWidth=1.5;g.beginPath();g.arc(cx,cy,R0*1.22,-Math.PI/2,-Math.PI/2+p*Math.PI*2);g.stroke();
-   g.strokeStyle='rgba(0,0,0,.12)';g.beginPath();g.arc(cx,cy,R0*1.22,0,7);g.stroke()}
-  const LR=R0*.6,ext=R0*1.06,fr=p*1.18;
-  g.globalAlpha=1-e;
-  for(let y=-ext;y<=ext;y+=sp)for(let x=-ext;x<=ext;x+=sp){
-   const d=sd(x/R0,y/R0,rot)*R0;if(d>sp*.6)continue;
-   let r=sp*.47*Math.max(0,Math.min(1,(sp*.5-d)/(sp*.9)));
-   const rr=Math.hypot(x,y)/R0,h=hsh(Math.round(x/sp),Math.round(y/sp));
-   const fill=exitT?1:sm(rr-.1,rr+.1,fr);
-   r*=(.66+.4*fill)*(RM?1:.9+.1*Math.sin(T*1.7-rr*5));
-   let px=ox+x,py=oy+y;
-   if(lens>.01){const dx=px-imx,dy=py-imy,dm=Math.hypot(dx,dy);if(dm<LR){const f=1-dm/LR,k=f*f*lens;r*=1+1.2*k;px+=dx*.4*k;py+=dy*.4*k}}
-   px=cx+(px-cx)*zoom;py=cy+(py-cy)*zoom;r*=zoom;
-   if(r<.3)continue;
-   const v=Math.round(150*(1-fill));
-   g.fillStyle=fill>.5&&h>.965?'#00e5e0':`rgb(${v},${v},${v})`;
-   g.beginPath();g.arc(px,py,r,0,7);g.fill()}
-  g.globalAlpha=1;requestAnimationFrame(frame)}
- requestAnimationFrame(frame);
- addEventListener('keydown',e=>{if(e.key=='Escape'&&alive&&!exitT){exitT=performance.now();it.classList.add('out');document.body.classList.remove('locked');setTimeout(()=>{alive=false;it.remove()},1300)}});}
+ addEventListener('keydown',e=>{if(e.key==='Escape'&&ready)enter()});}
+
 function audioTick(t){
  if(an&&playing){an.getByteFrequencyData(fd);let b=0,h=0;for(let i=1;i<=4;i++)b+=fd[i];b/=4*255;for(let i=90;i<280;i++)h+=fd[i];h/=190*255;
   bAvg+=(b-bAvg)*.04;if(b>bAvg*1.15+.03&&b>.42&&t-lastBeat>220){pulse=1;lastBeat=t}
@@ -1387,6 +1390,11 @@ $('#totop').addEventListener('click',e=>{e.preventDefault();launch()});
 const ro=new ResizeObserver(()=>{size();place(true)});ro.observe(document.body);
 place(true);
 }
+</script>
+<script>/* replay the intro: click the KIRARA: LAB title, or press R */
+{const go=()=>{if(document.getElementById('intro'))return;document.documentElement.style.scrollBehavior='auto';scrollTo(0,0);location.reload()};
+ document.getElementById('replay').addEventListener('click',go);document.getElementById('replay').addEventListener('keydown',e=>{if(e.key==='Enter')go()});
+ addEventListener('keydown',e=>{if((e.key==='r'||e.key==='R')&&!e.metaKey&&!e.ctrlKey&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName))go()});}
 </script>
 </body>
 </html>
